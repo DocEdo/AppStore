@@ -14,7 +14,9 @@ surveysub$shape <-
 
 # Model 1 ----
 
-# DV: purchased_rating
+# Original Model with multinom
+
+# DV: purchased_rating 
 
 model_1 <- multinom( # Multinom
   purchased_ratings ~ 
@@ -37,8 +39,11 @@ exp(coef(model_1))
 
 # Model 2 ----
 
+# Our Model Exploration starts here
+
 # DV: purchased_ratings
-model_2 <- multinom(
+
+model_2prev <- multinom(
   purchased_ratings ~ 
     age + 
     gender +
@@ -55,32 +60,211 @@ model_2 <- multinom(
     detail +
     DetailPurchase +
     ReviewPurchase +
-    regulatory_focus * previous_experience +
-    regulatory_focus * visit_frequency +
-    regulatory_focus * visit_mean +
-    regulatory_focus * directlyPurchase +
-    regulatory_focus * app_expense + 
-    regulatory_focus * DetailPurchase +
+    regulatory_focus * previous_experience,
+  data = surveysub)
+
+model_2visit <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
+    regulatory_focus * visit_frequency,
+  data = surveysub)
+
+model_2vismean <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
+    regulatory_focus * visit_mean,
+  data = surveysub)
+
+model_2direct <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
+    regulatory_focus * directlyPurchase,
+  data = surveysub)
+
+model_2app <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
+    regulatory_focus * app_expense,
+  data = surveysub)
+
+model_2detailp <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
+    regulatory_focus * DetailPurchase,
+  data = surveysub)
+
+model_2reviewp <- multinom(
+  purchased_ratings ~ 
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    DetailPurchase +
+    ReviewPurchase +
     regulatory_focus * ReviewPurchase,
   data = surveysub)
 
-summary(model_2)
+# model 2 previous experience
+summary(model_2prev)
 
-z <- 
-  summary(model_2)$coefficients/summary(model_2)$standard.errors
+z <- summary(model_2prev)$coefficients/summary(model_2prev)$standard.errors
 z
 
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
-p
 round(p, 4)
 
-round(exp(coef(model_2)),4)
+round(exp(coef(model_2prev)),4)
+
+# model 2 visit frequency
+summary(model_2visit)
+
+z <- summary(model_2visit)$coefficients/summary(model_2visit)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2visit)),4)
+
+# model 2 visit mean
+summary(model_2vismean)
+
+z <- summary(model_2vismean)$coefficients/summary(model_2vismean)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2vismean)),4)
+
+# model 2 direct purchase
+summary(model_2direct)
+
+z <- summary(model_2direct)$coefficients/summary(model_2direct)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2direct)),4)
+
+# model 2 app expense
+summary(model_2app)
+
+z <- summary(model_2app)$coefficients/summary(model_2app)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2app)),4)
+
+# model 2 detail purchase
+summary(model_2detailp)
+
+z <- summary(model_2detailp)$coefficients/summary(model_2detailp)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2detailp)),4)
+
+# model 2 review purchase
+summary(model_2reviewp)
+
+z <- summary(model_2reviewp)$coefficients/summary(model_2reviewp)$standard.errors
+z
+
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+round(p, 4)
+
+round(exp(coef(model_2reviewp)),4)
 
 # Model 3 ----
 
 # DV: shape
 
-model_3 <- glm(
+model_3prev <- glm(
   shape ~ 
     numRating +
     age + 
@@ -96,24 +280,115 @@ model_3 <- glm(
     involvement +
     review +
     detail +
-    regulatory_focus * previous_experience +
-    regulatory_focus * visit_frequency +
-    regulatory_focus * visit_mean +
-    regulatory_focus * directlyPurchase +
+    regulatory_focus * previous_experience,
+  family = "binomial",
+  data = surveysub)
+
+model_3visit <- glm(
+  shape ~ 
+    numRating +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * visit_frequency,
+  family = "binomial",
+  data = surveysub)
+
+model_3vismean <- glm(
+  shape ~ 
+    numRating +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * visit_mean,
+  family = "binomial",
+  data = surveysub)
+
+model_3direct <- glm(
+  shape ~ 
+    numRating +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * directlyPurchase,
+  family = "binomial",
+  data = surveysub)
+
+model_3app <- glm(
+  shape ~ 
+    numRating +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
     regulatory_focus * app_expense,
   family = "binomial",
   data = surveysub)
 
-summary(model_3)
+# model 3 previous experience
+summary(model_3prev)
+round(exp(coef(model_3prev)), 4)
 
-#summary(model_3)$coefficients/summary(model_3)$standard.errors
+# model 3 visit frequency
+summary(model_3visit)
+round(exp(coef(model_3visit)), 4)
 
-round(exp(coef(model_3)), 4)
+# model 3 visit mean
+summary(model_3vismean)
+round(exp(coef(model_3vismean)), 4)
+
+# model 3 direct purchase
+summary(model_3direct)
+round(exp(coef(model_3direct)), 4)
+
+# model 3 app expense
+summary(model_3app)
+round(exp(coef(model_3app)), 4)
 
 # Model 4 ----
 
 # DV: numRating
-model_4 <- glm(
+
+model_4prev <- glm(
   numRating ~ 
     shape +
     age + 
@@ -129,25 +404,115 @@ model_4 <- glm(
     involvement +
     review +
     detail +
-    regulatory_focus * previous_experience +
-    regulatory_focus * visit_frequency +
-    regulatory_focus * visit_mean +
-    regulatory_focus * directlyPurchase +
+    regulatory_focus * previous_experience,
+  family = "binomial",
+  data = surveysub)
+
+model_4visit <- glm(
+  numRating ~ 
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * visit_frequency,
+  family = "binomial",
+  data = surveysub)
+
+model_4vismean <- glm(
+  numRating ~ 
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * visit_mean,
+  family = "binomial",
+  data = surveysub)
+
+model_4direct <- glm(
+  numRating ~ 
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
+    regulatory_focus * directlyPurchase,
+  family = "binomial",
+  data = surveysub)
+
+model_4app <- glm(
+  numRating ~ 
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    directlyPurchase +
+    involvement +
+    review +
+    detail +
     regulatory_focus * app_expense,
   family = "binomial",
   data = surveysub)
 
-summary(model_4)
+# model 4 previous experience
+summary(model_4prev)
+round(exp(coef(model_4prev)), 4)
 
-#summary(model_4)$coefficients/summary(model_4)$standard.errors
+# model 4 visit frequency
+summary(model_4visit)
+round(exp(coef(model_4visit)), 4)
 
-round(exp(coef(model_4)), 4)
+# model 4 visit mean
+summary(model_4vismean)
+round(exp(coef(model_4vismean)), 4)
+
+# model 4 directly purchase
+summary(model_4direct)
+round(exp(coef(model_4direct)), 4)
+
+# model 4 app expense
+summary(model_4app)
+round(exp(coef(model_4app)), 4)
 
 # Model 5 ----
 
 # DV: review
 
-model_5 <- glm(
+model_5prev <- glm(
   review ~ 
     numRating +
     shape +
@@ -162,24 +527,88 @@ model_5 <- glm(
     visit_mean +
     involvement +
     detail + 
-    regulatory_focus * previous_experience +
-    regulatory_focus * visit_frequency +
-    regulatory_focus * visit_mean +
+    regulatory_focus * previous_experience,
+  family = "binomial",
+  data = surveysub)
+
+model_5visit <- glm(
+  review ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    detail +
+    regulatory_focus * visit_frequency,
+  family = "binomial",
+  data = surveysub)
+
+model_5vismean <- glm(
+  review ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    detail +
+    regulatory_focus * visit_mean,
+  family = "binomial",
+  data = surveysub)
+
+model_5app <- glm(
+  review ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    detail +
     regulatory_focus * app_expense,
   family = "binomial",
   data = surveysub)
 
-summary(model_5)
+# model 5 previous experience
+summary(model_5prev)
+round(exp(coef(model_5prev)), 4)
 
-#summary(model_5)$coefficients/summary(model_5)$standard.errors
+# model 5 visit frequency
+summary(model_5visit)
+round(exp(coef(model_5visit)), 4)
 
-round(exp(coef(model_5)), 4)
+# model 5 visit mean
+summary(model_5vismean)
+round(exp(coef(model_5vismean)), 4)
+
+# model 5 app expense
+summary(model_5app)
+round(exp(coef(model_5app)), 4)
 
 # Model 6 ----
 
 # DV: details
 
-model_6 <- glm(
+model_6prev <- glm(
   detail ~ 
     numRating +
     shape +
@@ -194,18 +623,82 @@ model_6 <- glm(
     visit_mean +
     involvement +
     review + 
-    regulatory_focus * previous_experience +
-    regulatory_focus * visit_frequency +
-    regulatory_focus * visit_mean +
+    regulatory_focus * previous_experience,
+  family = "binomial",
+  data = surveysub)
+
+model_6visit <- glm(
+  detail ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    review +
+    regulatory_focus * visit_frequency,
+  family = "binomial",
+  data = surveysub)
+
+model_6vismean <- glm(
+  detail ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    review +
+    regulatory_focus * visit_mean,
+  family = "binomial",
+  data = surveysub)
+
+model_6app <- glm(
+  detail ~ 
+    numRating +
+    shape +
+    age + 
+    gender +
+    income + 
+    visit_frequency + 
+    app_expense + 
+    previous_experience +
+    regulatory_focus + 
+    platform_preference + 
+    visit_mean +
+    involvement +
+    review +
     regulatory_focus * app_expense,
   family = "binomial",
   data = surveysub)
 
-summary(model_6)
+# model 6 previous experience
+summary(model_6prev)
+round(exp(coef(model_5prev)), 4)
 
-#summary(model_6)$coefficients/summary(model_6)$standard.errors
+# model 6 visit frequency
+summary(model_6visit)
+round(exp(coef(model_5visit)), 4)
 
-round(exp(coef(model_6)), 4)
+# model 6 visit mean
+summary(model_6vismean)
+round(exp(coef(model_5vismean)), 4)
+
+# model 6 app expense
+summary(model_6app)
+round(exp(coef(model_5app)), 4)
 
 
 # Example of interpretation: ----
