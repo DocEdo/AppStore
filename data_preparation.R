@@ -93,10 +93,8 @@ surveysub
 
 age_equal <- all(join_survey_filtered$age == surveysub$age)
 
-if (age_equal) {
-  print("The columns are the same.")
-} else {
-  print("The columns are different.")
+if (!age_equal) {
+  print("WARNING: matching the datasets did not work on AGE")
 }
 
 # Recreating directlyPurchase ----
@@ -116,10 +114,8 @@ detail_review_filtered$directly <-
 # Compare both direct columns
 are_equal <- all(detail_review_filtered$directly == surveysub$directlyPurchase)
 
-if (are_equal) {
-  print("The columns are the same.")
-} else {
-  print("The columns are different.")
+if (!are_equal) {
+  print("WARNING: matching the datasets did not work on directlyPurchase")
 }
 
 # Recreating visit_mean ----
@@ -129,10 +125,8 @@ surveysub <- surveysub %>%
 # Check if visit_mean and new_visit_mean are the same
 are_equal2 <- all(surveysub$visit_mean == surveysub$new_visit_mean)
 
-if (are_equal2) {
-  print("The columns are the same.")
-} else {
-  print("The columns are different.")
+if (!are_equal2) {
+  print("WARNING: matching the datasets did not work on visit_mean")
 }
 
 # Column name changes and factorize ----
@@ -165,8 +159,13 @@ surveysub <- surveysub %>%
          DetailOther = factor(DetailOther),
   )
 
+# Releveling reference categories ----
 
+surveysub$purchased_ratings <- 
+  relevel(factor(surveysub$purchased_ratings), ref = "HighJ")
 
+surveysub$shape <- 
+  relevel(factor(surveysub$shape), ref = "J")
 
 
 
