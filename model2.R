@@ -57,4 +57,10 @@ multinom_pvalues <- function(est_model) {
   ( (1 - pnorm(abs(z), 0, 1)) * 2) |> round(3)
 }
 
+# p-values
 model_2_pvalues <- lapply(model_2, FUN=multinom_pvalues)
+
+
+
+
+
