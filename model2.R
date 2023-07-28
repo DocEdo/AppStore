@@ -51,8 +51,18 @@ model_2[["regfocus_reviewp"]] <- multinom(
     regulatory_focus * review,
   data = surveysub)
 
+model_2[["combined_four"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
+    regulatory_focus * det_rev,
+  data = surveysub)
+
+model_2[["combined_maj"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
+    regulatory_focus * det_rev_maj,
+  data = surveysub)
+
 # Summary
-model_2$base
+model_2$combined_maj
 
 # Function to report model results
 multinom_pvalues <- function(est_model) {
