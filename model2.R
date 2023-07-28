@@ -51,6 +51,29 @@ model_2[["regfocus_reviewp"]] <- multinom(
     regulatory_focus * review,
   data = surveysub)
 
+# Read either detail/review
+model_2[["regfocus_read"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
+    regulatory_focus,
+  data = surveysub)
+
+model_2[["regfocus_read_rf"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
+    regulatory_focus * read,
+  data = surveysub)
+
+# Read both detail/review
+model_2[["regfocus_readboth"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + readboth +
+    regulatory_focus,
+  data = surveysub)
+
+model_2[["regfocus_readboth_rf"]] <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + readboth +
+    regulatory_focus * readboth,
+  data = surveysub)
+
+
 model_2[["combined_four"]] <- multinom(
   purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
     regulatory_focus * det_rev,

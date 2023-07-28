@@ -196,6 +196,11 @@ surveysub$purchased_ratings <-
 surveysub$shape <- 
   relevel(factor(surveysub$shape), ref = "J")
 
+
+# Aggregating review and detail behavior
+surveysub$read <- (surveysub$detail == "Read") | (surveysub$review == "Read")
+surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
+
 # Visit frequency visualization ----
 
 # Visualizations of visit_frequency
