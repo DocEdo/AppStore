@@ -9,7 +9,7 @@ source("data_preparation.R")
 
 # Our Model Exploration starts here
 
-# DV: purchased_ratings
+# DV: read
 
 model_8 <- list()
 
@@ -30,6 +30,12 @@ model_8[["visit"]] <- glm(
 
 model_8[["app"]] <- glm(
   read ~ numRating + shape + age + gender +income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + regulatory_focus * app_expense,
+  family = "binomial",
+  data = surveysub)
+
+model_8[["shape_rating"]] <- glm(
+  read ~ numRating + shape + age + gender +income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
+    shape * numRating,
   family = "binomial",
   data = surveysub)
 
