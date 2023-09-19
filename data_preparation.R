@@ -202,7 +202,8 @@ surveysub$read <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
 
 surveysub <- surveysub %>% 
-  mutate(readboth = factor(readboth)
+  mutate(readboth = factor(readboth),
+         read = factor(read)
          )
 
 # Visit frequency visualization ----
