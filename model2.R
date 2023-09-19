@@ -73,19 +73,17 @@ model_2[["regfocus_readboth_rf"]] <- multinom(
     regulatory_focus * readboth,
   data = surveysub)
 
+# model_2[["combined_four"]] <- multinom(
+#   purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
+#     regulatory_focus * det_rev,
+#   data = surveysub)
+# 
+# model_2[["combined_maj"]] <- multinom(
+#   purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
+#     regulatory_focus * det_rev_maj,
+#   data = surveysub)
 
-model_2[["combined_four"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
-    regulatory_focus * det_rev,
-  data = surveysub)
-
-model_2[["combined_maj"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + 
-    regulatory_focus * det_rev_maj,
-  data = surveysub)
-
-# Summary
-model_2$combined_maj
+# Results ----
 
 # Function to report model results
 multinom_pvalues <- function(est_model) {
@@ -97,10 +95,22 @@ multinom_pvalues <- function(est_model) {
   ( (1 - pnorm(abs(z), 0, 1)) * 2) |> round(3)
 }
 
+# Model results
+summary(model_2$regfocus_readboth_rf)
+
 # p-values
-model_2_pvalues <- lapply(model_2, FUN=multinom_pvalues)
+model_2_pvalues <- lapply(model_2, FUN = multinom_pvalues)
 
 model_2_pvalues
+
+
+# Exponentiate results
+round(exp(coef(model_2$regfocus_readboth_rf)), 3)
+
+
+
+
+
 
 
 

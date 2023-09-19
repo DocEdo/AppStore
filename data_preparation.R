@@ -160,6 +160,7 @@ surveysub <- surveysub %>%
          DetailPurchase = factor(DetailPurchase),
          DetailOther = factor(DetailOther),
   )
+
 # Collapse review and detail ----
 
 # Combined Variables
@@ -196,10 +197,13 @@ surveysub$purchased_ratings <-
 surveysub$shape <- 
   relevel(factor(surveysub$shape), ref = "J")
 
-
 # Aggregating review and detail behavior
 surveysub$read <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
+
+surveysub <- surveysub %>% 
+  mutate(readboth = factor(readboth)
+         )
 
 # Visit frequency visualization ----
 
