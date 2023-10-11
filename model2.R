@@ -107,8 +107,6 @@ multinom_pvalues <- function(est_model) {
 }
 
 # Model results
-summary(model_2$regfocus_readboth)
-summary(model_2$regfocus_readboth_rf)
 summary(model_2$regfocus_read)
 summary(model_2$regfocus_read_rf)
 
@@ -124,10 +122,23 @@ round(exp(coef(model_2$regfocus_readboth_rf)), 3)
 round(exp(coef(model_2$regfocus_read)), 3)
 round(exp(coef(model_2$regfocus_read_rf)), 3)
 
+# Experimenting csv outputs
 
+model_2out <- multinom(
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
+    regulatory_focus * read,
+  data = surveysub)
 
+summary_model2 <- summary(model_2out)
 
+# Extract coefficients and standard errors
+coefs <- as.data.frame(summary_model2$coefficients)
+stderrs <- as.data.frame(summary_model2$standard.errors)
 
+# Combine and save to CSV
+output_nnet <- cbind(coefs, stderrs)
+colnames(output_nnet) <- c("Coefficient", "StandardError")
+write.csv(output_nnet, "model2_summary.csv", row.names = TRUE)
 
 
 

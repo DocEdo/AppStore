@@ -12,22 +12,22 @@ model_5 <- list()
 # DV: review
 
 model_5[["base"]] <- glm(
-  review ~ numRating +shape +age + gender +income + visit_frequency + app_expense + previous_experience +regulatory_focus + platform_preference + involvement + detail,
+  review ~ numRating + shape + age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement,
   family = "binomial",
   data = surveysub)
 
 model_5[["prev"]] <- glm(
-  review ~ numRating + shape + age + gender +income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + detail +  regulatory_focus * previous_experience,
+  review ~ numRating + shape + age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement +  regulatory_focus * previous_experience,
   family = "binomial",
   data = surveysub)
 
 model_5[["visit"]] <- glm(
-  review ~ numRating + shape + age + gender +income + visit_frequency + app_expense + previous_experience +regulatory_focus + platform_preference + involvement + detail + regulatory_focus * visit_frequency,
+  review ~ numRating + shape + age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + regulatory_focus * visit_frequency,
   family = "binomial",
   data = surveysub)
 
 model_5[["app"]] <- glm(
-  review ~ numRating + shape + age + gender +income + visit_frequency + app_expense + previous_experience +regulatory_focus + platform_preference + involvement + detail + regulatory_focus * app_expense,
+  review ~ numRating + shape + age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + regulatory_focus * app_expense,
   family = "binomial",
   data = surveysub)
 
