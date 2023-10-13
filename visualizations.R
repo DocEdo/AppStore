@@ -8,13 +8,47 @@ library("readx1")
 
 # Visualizations of purchased_ratings vs explore behavior
 
+
+# Visualizations purchased_ratings ----
+# Dodged (side by side) bar plot
+dodged_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focus)) +
+  geom_bar(position = "dodge", width = 0.6) + 
+  facet_wrap(~purchased_ratings, scales = "free_y") +
+  labs(title = "Read Behavior by Regulatory Focus (Dodged Bars)",
+       x = "Read Behavior",
+       y = "Count",
+       fill = "Regulatory Focus") +
+  theme_minimal()
+
+# Stacked bar plot
+stacked_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focus)) +
+  geom_bar(position = "stack", width = 0.6) + 
+  facet_wrap(~purchased_ratings, scales = "free_y") +
+  labs(title = "Read Behavior by Regulatory Focus (Stacked Bars)",
+       x = "Read Behavior",
+       y = "Count",
+       fill = "Regulatory Focus") +
+  theme_minimal()
+
+dodged_plot
+stacked_plot
+
 # Mosaic plot ----
+# Age
 filtered_data <- surveysub %>%
   filter(purchased_ratings %in% c("HighU", "HighJ"))
 
+filtered_data_low <- surveysub %>%
+  filter(purchased_ratings %in% c("LowU", "LowJ"))
+
 mosaic(~ read + purchased_ratings, data = filtered_data, shade = TRUE)
 
+# Regulatory Focus
+mosaic(~ read + purchased_ratings + regulatory_focus, data = filtered_data, shade = TRUE)
+
+
 # Stacked bar plot ----
+# Age and High
 age_data <- filtered_data %>%
   group_by(purchased_ratings, read, age) %>%
   summarise(count = n(), .groups = 'drop') %>%
@@ -27,11 +61,52 @@ ggplot(age_data, aes(x = read, y = percentage, fill = as.factor(age))) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+# Regulatory Focus and High
+rf_data <- filtered_data %>%
+  group_by(purchased_ratings, read, regulatory_focus) %>%
+  summarise(count = n(), .groups = 'drop')
+
+ggplot(rf_data, aes(x = read, y = count, fill = regulatory_focus)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7) +
+  facet_grid(purchased_ratings ~ .) +
+  labs(y = "Count", x = "Read Behavior", fill = "Regulatory Focus") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Regulatory Focus and Low
+rf_data2 <- filtered_data_low%>%
+  group_by(purchased_ratings, read, regulatory_focus) %>%
+  summarise(count = n(), .groups = 'drop')
+
+ggplot(rf_data2, aes(x = read, y = count, fill = regulatory_focus)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7) +
+  facet_grid(purchased_ratings ~ .) +
+  labs(y = "Count", x = "Read Behavior", fill = "Regulatory Focus") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 # Dodged bar plot ----
+# Age and High
 ggplot(age_data, aes(x = read, y = percentage, fill = as.factor(age))) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) + # dodge places bars for different ages side by side
   facet_grid(. ~ purchased_ratings) +
   labs(y = "Percentage of Ages", x = "Read Behavior", fill = "Age") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Regulatory Focus and High - using rf_data
+ggplot(rf_data, aes(x = read, y = count, fill = regulatory_focus)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  facet_grid(. ~ purchased_ratings) +
+  labs(y = "Count", x = "Read Behavior", fill = "Regulatory Focus") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Regulatory Focus and High - using rf_data
+ggplot(rf_data2, aes(x = read, y = count, fill = regulatory_focus)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  facet_grid(. ~ purchased_ratings) +
+  labs(y = "Count", x = "Read Behavior", fill = "Regulatory Focus") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -64,6 +139,18 @@ word_data <- data.frame(word = names(word_freqs), freq = word_freqs)
 # Plot the word cloud
 wordcloud(words = word_data$word, freq = word_data$freq, min.freq = 1,
           max.words = 100, random.order = FALSE, colors = brewer.pal(8, "Dark2"))
+
+# Visualization purchased_ratings
+plot <- ggplot(filtered_data, aes(x = as.factor(read), fill = regulatory_focus)) +
+  geom_bar(width = 0.6) + # use position="fill" to normalize the bars
+  facet_wrap(~purchased_ratings, scales = "free_y") + # separate plots for HighU and HighJ
+  labs(title = "Read Behavior by Regulatory Focus",
+       x = "Read Behavior",
+       y = "Proportion",
+       fill = "Regulatory Focus") +
+  theme_minimal()
+
+plot
 
 
 # TF-IDF Analysis ----
