@@ -8,7 +8,6 @@ library("readx1")
 
 # Visualizations of purchased_ratings vs explore behavior
 
-
 # Visualizations purchased_ratings ----
 # Dodged (side by side) bar plot
 dodged_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focus)) +
