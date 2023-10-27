@@ -57,9 +57,14 @@ kw_prev
 kw_prom
 
 # ANOVA + Tukey tests
-reg_x_ratings <- aov(
+reg_x_ratings_aov <- aov(
   read_num ~ regulatory_focus * purchased_ratings,
   data = surveysub
 )
-summary(reg_x_ratings)
-TukeyHSD(reg_x_ratings, conf.level = 0.01)
+summary(reg_x_ratings_aov)
+TukeyHSD(reg_x_ratings_aov, conf.level = 0.01)
+
+reg_x_ratings_lm <- lm(
+  read_num ~ regulatory_focus * purchased_ratings,
+  data = surveysub
+)
