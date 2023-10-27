@@ -9,25 +9,25 @@ library(dplyr)
 surveysub$read_num <- ifelse(surveysub$read == "TRUE", 1, 0)
 
 # Mann-Whitney U test for HighJ
-highj_d <- surveysub %>% 
+highj_d <- surveysub %>%
   filter(purchased_ratings == "HighJ")
 
 highj_mw <- wilcox.test(read_num ~ regulatory_focus, data = highj_d)
 
 # Mann-Whitney U test for LowJ
-lowj_d <- surveysub %>% 
+lowj_d <- surveysub %>%
   filter(purchased_ratings == "LowJ")
 
 lowj_mw <- wilcox.test(read_num ~ regulatory_focus, data = lowj_d)
 
 # Mann-Whitney U test for HighU
-highu_d <- surveysub %>% 
+highu_d <- surveysub %>%
   filter(purchased_ratings == "HighU")
 
 highu_mw <- wilcox.test(read_num ~ regulatory_focus, data = highu_d)
 
 # Mann-Whitney U test for LowU
-lowu_d <- surveysub %>% 
+lowu_d <- surveysub %>%
   filter(purchased_ratings == "LowU")
 
 lowu_mw <- wilcox.test(read_num ~ regulatory_focus, data = lowu_d)
@@ -41,15 +41,14 @@ highu_mw$p.value
 lowu_mw
 lowu_mw$p.value
 
-
 # Kruskal-Wallis H test for Prevention
-prev_data <- surveysub %>% 
+prev_data <- surveysub %>%
   filter(regulatory_focus == "Prevention")
 
 kw_prev <- kruskal.test(read_num ~ purchased_ratings, data = prev_data)
 
 # KW H test for Promotion
-prom_data <- surveysub %>% 
+prom_data <- surveysub %>%
   filter(regulatory_focus == "Promotion")
 
 kw_prom <- kruskal.test(read_num ~ purchased_ratings, data = prom_data)
@@ -57,12 +56,15 @@ kw_prom <- kruskal.test(read_num ~ purchased_ratings, data = prom_data)
 kw_prev
 kw_prom
 
+# ANOVA + Tukey tests
+reg_x_ratings_aov <- aov(
+  read_num ~ regulatory_focus * purchased_ratings,
+  data = surveysub
+)
+summary(reg_x_ratings_aov)
+TukeyHSD(reg_x_ratings_aov, conf.level = 0.01)
 
-
-
-
-
-
-
-
-
+reg_x_ratings_lm <- lm(
+  read_num ~ regulatory_focus * purchased_ratings,
+  data = surveysub
+)

@@ -6,12 +6,28 @@ library("tidytext")
 library("vcd")
 library("readx1")
 
+# Visit frequency visualization ----
+
+# Visualizations of visit_frequency
+hist(surveysub$visit_frequency, breaks = 20, col = "cadetblue2",
+     xlab = "Visit Frequency", ylab = "Frequency Count",
+     main = "Histogram of Visit Frequency")
+
+visit_density <- density(surveysub$visit_frequency)
+plot(visit_density, col = "cadetblue2", lwd = 2, main = "Density Plot of Visit Frequency")
+
+visit_counts <- table(surveysub$visit_frequency)
+barplot(visit_counts,
+        col = "cadetblue2",
+        main = "Bar Plot of Visit Frequency Categories")
+
+
 # Visualizations of purchased_ratings vs explore behavior
 
 # Visualizations purchased_ratings ----
 # Dodged (side by side) bar plot
 dodged_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focus)) +
-  geom_bar(position = "dodge", width = 0.6) + 
+  geom_bar(position = "dodge", width = 0.6) +
   facet_wrap(~purchased_ratings, scales = "free_y") +
   labs(title = "Read Behavior by Regulatory Focus (Dodged Bars)",
        x = "Read Behavior",
@@ -21,7 +37,7 @@ dodged_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focu
 
 # Stacked bar plot
 stacked_plot <- ggplot(surveysub, aes(x = as.factor(read), fill = regulatory_focus)) +
-  geom_bar(position = "stack", width = 0.6) + 
+  geom_bar(position = "stack", width = 0.6) +
   facet_wrap(~purchased_ratings, scales = "free_y") +
   labs(title = "Read Behavior by Regulatory Focus (Stacked Bars)",
        x = "Read Behavior",
@@ -158,7 +174,7 @@ plot
 # Convert dataframe into a tidy format using 'id' column
 tidy_data <- join_theme %>%
   select(id, why) %>% # Select only the id and why columns
-  unnest_tokens(word, why) 
+  unnest_tokens(word, why)
 
 # TF-IDF
 tf_idf <- tidy_data %>%
