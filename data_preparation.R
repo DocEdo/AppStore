@@ -19,10 +19,10 @@ purchases
 
 # Select only required columns
 surveysub <- subset(purchases, select = c(
-  id, subject, purchase, appname, combine, 
-  regulatory_focus, platform_preference, 
-  visit_frequency, app_expense, previous_experience, 
-  gender, income, involvement, age, visit_mean, 
+  id, subject, purchase, appname, combine,
+  regulatory_focus, platform_preference,
+  visit_frequency, app_expense, previous_experience,
+  gender, income, involvement, age, visit_mean,
   directlyPurchase, review, detail, apporder, appname, numRating)
 )
 
@@ -33,8 +33,8 @@ colnames(surveysub)[
 surveysub$purchased_ratings
 
 # Create the new column: shape
-surveysub$shape <- 
-  ifelse(surveysub$purchased_ratings == "HighJ" | 
+surveysub$shape <-
+  ifelse(surveysub$purchased_ratings == "HighJ" |
            surveysub$purchased_ratings == "LowJ", "J", "U")
 
 surveysub$shape
@@ -109,8 +109,8 @@ detail_review_filtered <- join_survey %>%
 # view(detail_review_filtered)
 
 # Creating column
-detail_review_filtered$directly <- 
-  ifelse(detail_review_filtered$noDetail_purchase == 1 & 
+detail_review_filtered$directly <-
+  ifelse(detail_review_filtered$noDetail_purchase == 1 &
            detail_review_filtered$noReview_purchase == 1, 1, 0)
 
 # Compare both direct columns
@@ -138,20 +138,20 @@ if (!are_equal2) {
 #   surveysub$regulatory_focus == 1, "Prevention", "Promotion")
 
 # Changing integer columns to factors
-surveysub <- surveysub %>% 
-  mutate(gender = 
-           factor(ifelse(gender == 1, "Female", "Male")), 
-         regulatory_focus = 
+surveysub <- surveysub %>%
+  mutate(gender =
+           factor(ifelse(gender == 1, "Female", "Male")),
+         regulatory_focus =
            factor(ifelse(regulatory_focus == 1, "Prevention", "Promotion")),
-         platform_preference = 
+         platform_preference =
            factor(ifelse(platform_preference == 1, "GooglePlay", "AppStore")),
          directlyPurchase =
            factor(ifelse(directlyPurchase == 1, "Yes", "No")),
-         review = 
+         review =
            factor(ifelse(review == 1, "Read", "NotRead")),
-         detail = 
+         detail =
            factor(ifelse(detail == 1, "Read", "NotRead")),
-         numRating = 
+         numRating =
            factor(ifelse(numRating == 1, "High", "Low")),
          involvement = factor(involvement),
          visit_mean = factor(visit_mean),
@@ -168,7 +168,7 @@ surveysub$det_rev <- paste(surveysub$review, surveysub$detail, sep = "_")
 
 head(surveysub$det_rev, 10)
 
-surveysub <- surveysub %>% 
+surveysub <- surveysub %>%
   mutate(det_rev = factor(det_rev))
 
 surveysub$det_rev <- relevel(surveysub$det_rev, ref = "Read_Read")
@@ -191,54 +191,18 @@ surveysub$det_rev_maj
 
 # Releveling reference categories ----
 
-surveysub$purchased_ratings <- 
+surveysub$purchased_ratings <-
   relevel(factor(surveysub$purchased_ratings), ref = "HighJ")
 
-surveysub$shape <- 
+surveysub$shape <-
   relevel(factor(surveysub$shape), ref = "J")
 
 # Aggregating review and detail behavior
 surveysub$read <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
 
-surveysub <- surveysub %>% 
+surveysub <- surveysub %>%
   mutate(readboth = factor(readboth),
          read = factor(read)
          )
-
-# Visit frequency visualization ----
-
-# Visualizations of visit_frequency
-hist(surveysub$visit_frequency, breaks = 20, col = "cadetblue2",
-     xlab = "Visit Frequency", ylab = "Frequency Count",
-     main = "Histogram of Visit Frequency")
-
-visit_density <- density(surveysub$visit_frequency)
-plot(visit_density, col = "cadetblue2", lwd = 2, main = "Density Plot of Visit Frequency")
-
-visit_counts <- table(surveysub$visit_frequency)
-barplot(visit_counts, 
-        col = "cadetblue2", 
-        main = "Bar Plot of Visit Frequency Categories")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
