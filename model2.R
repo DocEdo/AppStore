@@ -53,13 +53,13 @@ model_2[["regfocus_reviewp"]] <- multinom(
 
 # Read either detail/review
 model_2[["regfocus_read"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore +
     regulatory_focus,
   data = surveysub)
 
 model_2[["regfocus_read_rf"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
-    regulatory_focus * read,
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore +
+    regulatory_focus * explore,
   data = surveysub)
 
 # Read both detail/review
@@ -75,13 +75,13 @@ model_2[["regfocus_readboth_rf"]] <- multinom(
 
 # Read either detail/review
 model_2[["regfocus_read"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read,
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore,
   data = surveysub)
 
 # Read either detail/review
 model_2[["regfocus_read_rf"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
-    regulatory_focus * read,
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore +
+    regulatory_focus * explore,
   data = surveysub)
 
 # model_2[["combined_four"]] <- multinom(
@@ -125,8 +125,8 @@ round(exp(coef(model_2$regfocus_read_rf)), 3)
 # Experimenting csv outputs
 
 model_2out <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + read +
-    regulatory_focus * read,
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore +
+    regulatory_focus * explore,
   data = surveysub)
 
 summary_model2 <- summary(model_2out)

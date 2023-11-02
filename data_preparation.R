@@ -198,28 +198,31 @@ surveysub$shape <-
   relevel(factor(surveysub$shape), ref = "J")
 
 # Aggregating review and detail behavior
-surveysub$read <- (surveysub$detail == "Read") | (surveysub$review == "Read")
+surveysub$explore <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
 
 surveysub <- surveysub %>% 
   mutate(readboth = factor(readboth),
-         read = factor(read)
+         explore = factor(explore)
          )
 
-# Visit frequency visualization ----
+# Survey changes
+survey <- survey %>% 
+  mutate(review = 
+           factor(ifelse(review == 1, "Read", "NotRead")),
+         detail = 
+           factor(ifelse(detail == 1, "Read", "NotRead")),
+  )
 
-# Visualizations of visit_frequency
-hist(surveysub$visit_frequency, breaks = 20, col = "cadetblue2",
-     xlab = "Visit Frequency", ylab = "Frequency Count",
-     main = "Histogram of Visit Frequency")
 
-visit_density <- density(surveysub$visit_frequency)
-plot(visit_density, col = "cadetblue2", lwd = 2, main = "Density Plot of Visit Frequency")
+# Add: explore to survey
+survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
-visit_counts <- table(surveysub$visit_frequency)
-barplot(visit_counts, 
-        col = "cadetblue2", 
-        main = "Bar Plot of Visit Frequency Categories")
+survey <- survey %>% 
+  mutate(explore = factor(explore)
+         )
+
+
 
 
 
