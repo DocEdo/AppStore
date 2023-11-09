@@ -1,4 +1,4 @@
-# Model Exploration
+# Model 2
 
 # Packages ----
 require("nnet")

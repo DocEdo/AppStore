@@ -137,7 +137,7 @@ if (!are_equal2) {
 # surveysub$regulatory_focus <- ifelse(
 #   surveysub$regulatory_focus == 1, "Prevention", "Promotion")
 
-# Changing integer columns to factors
+# Changing integer columns to factors in surveysub and survey
 surveysub <- surveysub %>% 
   mutate(gender = 
            factor(ifelse(gender == 1, "Female", "Male")), 
@@ -159,6 +159,24 @@ surveysub <- surveysub %>%
          ReviewOther = factor(ReviewOther),
          DetailPurchase = factor(DetailPurchase),
          DetailOther = factor(DetailOther),
+  )
+
+survey <- survey %>% 
+  mutate(gender = 
+           factor(ifelse(gender == 1, "Female", "Male")), 
+         regulatory_focus = 
+           factor(ifelse(regulatory_focus == 1, "Prevention", "Promotion")),
+         platform_preference = 
+           factor(ifelse(platform_preference == 1, "GooglePlay", "AppStore")),
+         directlyPurchase =
+           factor(ifelse(directlyPurchase == 1, "Yes", "No")),
+         review = 
+           factor(ifelse(review == 1, "Read", "NotRead")),
+         detail = 
+           factor(ifelse(detail == 1, "Read", "NotRead")),
+         numRating = 
+           factor(ifelse(numRating == 1, "High", "Low")),
+         involvement = factor(involvement)
   )
 
 # Collapse review and detail ----
@@ -206,22 +224,23 @@ surveysub <- surveysub %>%
          explore = factor(explore)
          )
 
-# Survey changes
-survey <- survey %>% 
-  mutate(review = 
-           factor(ifelse(review == 1, "Read", "NotRead")),
-         detail = 
-           factor(ifelse(detail == 1, "Read", "NotRead")),
-  )
-
-
-# Add: explore to survey
+# Survey changes for FE ----
 survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
 survey <- survey %>% 
   mutate(explore = factor(explore)
          )
 
+colnames(survey)[
+  which(names(survey) == "combine")] <- "purchased_ratings"
+
+survey$purchased_ratings
+
+survey$shape <- 
+  ifelse(survey$purchased_ratings == "HighJ" | 
+           survey$purchased_ratings == "LowJ", "J", "U")
+
+survey$shape
 
 
 
