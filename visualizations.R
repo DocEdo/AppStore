@@ -211,7 +211,7 @@ survey$explore_num <- as.numeric(survey$explore)
 
 dodged_plot <- ggplot(survey, aes(x = as.factor(explore_num), fill = regulatory_focus, group = regulatory_focus)) +
   geom_bar(position = "dodge", width = 0.6) + 
-  facet_wrap(~combine, scales = "free_y") +
+  facet_wrap(~purchased_ratings, scales = "free_y") +
   labs(title = "Explore Behavior by Regulatory Focus (Dodged Bars)",
        x = "Explore Behavior",
        y = "Count",
@@ -223,16 +223,24 @@ dodged_plot
 # Consistent count
 dodged_plot <- ggplot(survey, aes(x = as.factor(explore_num), fill = regulatory_focus, group = regulatory_focus)) +
   geom_bar(position = "dodge", width = 0.6) + 
-  facet_wrap(~combine, scales = "free_x") +
+  facet_wrap(~purchased_ratings, scales = "free_x") +
   labs(title = "Explore Behavior by Regulatory Focus (Dodged Bars)",
        x = "Explore Behavior",
        y = "Count",
        fill = "Regulatory Focus") + 
-  # + ylim(0, 300)
+   # + ylim(0, 300)
   theme_minimal()
 
 dodged_plot
 
+
+verify_counts <- survey %>%
+  group_by(as.factor(explore_num), regulatory_focus, purchased_ratings) %>%
+  summarise(Count = n()) %>%
+  ungroup()
+
+# Check if the sum of all counts is 1728
+sum(verify_counts$Count)
 
 
 

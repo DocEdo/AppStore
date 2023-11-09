@@ -215,7 +215,7 @@ surveysub$purchased_ratings <-
 surveysub$shape <- 
   relevel(factor(surveysub$shape), ref = "J")
 
-# Aggregating review and detail behavior
+# Aggregating review and detail behavior ----
 surveysub$explore <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
 
@@ -224,7 +224,7 @@ surveysub <- surveysub %>%
          explore = factor(explore)
          )
 
-# Survey changes for FE ----
+# Survey dataset changes for FE ----
 survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
 survey <- survey %>% 
@@ -242,24 +242,27 @@ survey$shape <-
 
 survey$shape
 
+survey$purchased_ratings <- 
+  relevel(factor(survey$purchased_ratings), ref = "HighJ")
 
+survey$shape <- 
+  relevel(factor(survey$shape), ref = "J")
 
+# Adding column of open ended questions to surveysub ----
 
+# Change Regulatory Focus to use for comparison
+join_survey$regulatory_focus <- 
+  ifelse(tolower(join_survey$regulatory_focus) == "prevention", "Prevention",
+  ifelse(tolower(join_survey$regulatory_focus) == "promotion", "Promotion",
+         join_survey$regulatory_focus)
+  )
 
+surveysub$why <- join_survey$why
 
+# Compare regulatory focus and why columns in both datasets to confirm nothing is displaced
+all(surveysub$why == join_survey$why)
 
-
-
-
-
-
-
-
-
-
-
-
-
+all(surveysub$regulatory_focus == join_survey$regulatory_focus)
 
 
 
