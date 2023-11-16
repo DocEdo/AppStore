@@ -13,7 +13,7 @@ source("data_preparation.R")
 
 model_2 <- list()
 model_2[["base"]] <- multinom(
-  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + review + detail,
+  purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore,
   data = surveysub)
 
 model_2[["det_rev"]] <- multinom(
@@ -78,8 +78,8 @@ model_2[["regfocus_read"]] <- multinom(
   purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore,
   data = surveysub)
 
-# Read either detail/review
-model_2[["regfocus_read_rf"]] <- multinom(
+# Explore either read/detail
+model_2[["regfocus_explore_rf"]] <- multinom(
   purchased_ratings ~ age + gender + income + visit_frequency + app_expense + previous_experience + regulatory_focus + platform_preference + involvement + explore +
     regulatory_focus * explore,
   data = surveysub)
@@ -107,8 +107,8 @@ multinom_pvalues <- function(est_model) {
 }
 
 # Model results
-summary(model_2$regfocus_read)
-summary(model_2$regfocus_read_rf)
+summary(model_2$base)
+summary(model_2$base)
 
 # p-values
 model_2_pvalues <- lapply(model_2, FUN = multinom_pvalues)

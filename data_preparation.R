@@ -224,6 +224,12 @@ surveysub <- surveysub %>%
          explore = factor(explore)
          )
 
+surveysub$regulatory_focus <- 
+  relevel(factor(surveysub$regulatory_focus), ref = "Promotion")
+
+surveysub$explore <- 
+  relevel(factor(surveysub$explore), ref = "TRUE")
+
 # Survey dataset changes for FE ----
 survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
@@ -242,11 +248,18 @@ survey$shape <-
 
 survey$shape
 
+# Releveling for survey (surveysub again)
 survey$purchased_ratings <- 
   relevel(factor(survey$purchased_ratings), ref = "HighJ")
 
 survey$shape <- 
   relevel(factor(survey$shape), ref = "J")
+
+survey$explore <- 
+  relevel(factor(survey$explore), ref = "TRUE")
+
+survey$regulatory_focus <- 
+  relevel(factor(survey$regulatory_focus), ref = "Promotion")
 
 # Adding column of open ended questions to surveysub ----
 

@@ -77,17 +77,15 @@ stargazer(fe_glmer2, type = "text")
 
 tidy(fe_glmer2)
 
-# Glm factored subject -> Doesn't work
-fe_glmmodel2 <- glm(explore ~ shape + 
+# Glm without fe
+lm_model1 <- glm(explore ~ shape + 
                       numRating + 
                       shape * numRating + 
-                      regulatory_focus + 
-                      factor(subject), 
+                      regulatory_focus, 
                     family = binomial, 
-                    data = survey,
-                    control = glm.control(maxit = 50))
+                    data = survey)
 
-summary(fe_glmmodel2)
+summary(lm_model1)
 
 # Mixed effects
 fe_glmer2 <- glmer(explore ~ 
@@ -100,6 +98,65 @@ fe_glmer2 <- glmer(explore ~
                    data = survey)
 
 summary(fe_glmer2)
+
+
+# Lm without FE
+lm_model2 <- lm(explore_num ~ 
+                 shape + 
+                 numRating + 
+                 shape*numRating + 
+                 regulatory_focus,
+               data = survey)
+
+summary(lm_model2)
+
+# Explore model with interactions ----
+
+# Base
+explore_base <- glm(explore ~ 
+                      shape + 
+                      numRating + 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      platform_preference + 
+                      involvement + 
+                      regulatory_focus, 
+                 family = binomial, 
+                 data = survey)
+
+summary(explore_base)
+
+# Interaction
+explore_int <- glm(explore ~ 
+                      shape + 
+                      numRating + 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      platform_preference + 
+                      involvement + 
+                      regulatory_focus +
+                      regulatory_focus*shape, 
+                 family = binomial, 
+                 data = survey)
+
+summary(explore_int)
+
+
+
+
+
+
+
+
+
 
 
 
