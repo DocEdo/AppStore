@@ -107,7 +107,7 @@ multinom_pvalues <- function(est_model) {
 }
 
 # Model results
-summary(model_2$base)
+summary(model_2$regfocus_explore_rf)
 summary(model_2$base)
 
 # p-values
@@ -117,10 +117,8 @@ model_2_pvalues
 
 
 # Exponentiate results
-round(exp(coef(model_2$regfocus_readboth)), 3)
-round(exp(coef(model_2$regfocus_readboth_rf)), 3)
-round(exp(coef(model_2$regfocus_read)), 3)
-round(exp(coef(model_2$regfocus_read_rf)), 3)
+round(exp(coef(model_2$regfocus_explore_rf)), 3)
+
 
 # Experimenting csv outputs
 

@@ -207,14 +207,6 @@ surveysub$det_rev_maj <- mapply(majority, surveysub$review, surveysub$detail)
 surveysub$det_rev_maj
 
 
-# Releveling reference categories ----
-
-surveysub$purchased_ratings <- 
-  relevel(factor(surveysub$purchased_ratings), ref = "HighJ")
-
-surveysub$shape <- 
-  relevel(factor(surveysub$shape), ref = "J")
-
 # Aggregating review and detail behavior ----
 surveysub$explore <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
@@ -230,7 +222,30 @@ surveysub$regulatory_focus <-
 surveysub$explore <- 
   relevel(factor(surveysub$explore), ref = "TRUE")
 
-# Survey dataset changes for FE ----
+# Re leveling reference categories ----
+
+surveysub$purchased_ratings <- 
+  relevel(factor(surveysub$purchased_ratings), ref = "HighJ")
+
+surveysub$shape <- 
+  relevel(factor(surveysub$shape), ref = "J")
+
+surveysub$explore <- 
+  relevel(factor(surveysub$explore), ref = "FALSE")
+
+surveysub$gender <- 
+  relevel(factor(surveysub$gender), ref = "Male")
+
+surveysub$involvement <- 
+  relevel(factor(surveysub$involvement), ref = "0")
+
+surveysub$platform_preference <- 
+  relevel(factor(surveysub$platform_preference), ref = "GooglePlay")
+
+surveysub$regulatory_focus <- 
+  relevel(factor(surveysub$regulatory_focus), ref = "Prevention")
+
+# Survey data set changes for FE ----
 survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
 survey <- survey %>% 
@@ -240,15 +255,11 @@ survey <- survey %>%
 colnames(survey)[
   which(names(survey) == "combine")] <- "purchased_ratings"
 
-survey$purchased_ratings
-
 survey$shape <- 
   ifelse(survey$purchased_ratings == "HighJ" | 
            survey$purchased_ratings == "LowJ", "J", "U")
 
-survey$shape
-
-# Releveling for survey (surveysub again)
+# Releveling for survey ----
 survey$purchased_ratings <- 
   relevel(factor(survey$purchased_ratings), ref = "HighJ")
 
@@ -256,10 +267,19 @@ survey$shape <-
   relevel(factor(survey$shape), ref = "J")
 
 survey$explore <- 
-  relevel(factor(survey$explore), ref = "TRUE")
+  relevel(factor(survey$explore), ref = "FALSE")
+
+survey$gender <- 
+  relevel(factor(survey$gender), ref = "Male")
+
+survey$involvement <- 
+  relevel(factor(survey$involvement), ref = "0")
+
+survey$platform_preference <- 
+  relevel(factor(survey$platform_preference), ref = "GooglePlay")
 
 survey$regulatory_focus <- 
-  relevel(factor(survey$regulatory_focus), ref = "Promotion")
+  relevel(factor(survey$regulatory_focus), ref = "Prevention")
 
 # Adding column of open ended questions to surveysub ----
 

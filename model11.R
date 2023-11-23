@@ -3,12 +3,13 @@
 # Packages ----
 require("nnet")
 require("mlogit")
+require("car")
 source("data_preparation.R")
 
 
-# Model 11 -> DV: purchased_ratings Highu vs else ----
+# Model 11 -> DV: purchased_ratings Highu vs rest ----
 
-# Recode purchased_ratings to a binary of HighU vs the rest
+# Recoding purchased_ratings to a binary of HighU vs the rest
 surveysub$purchased_binary <- as.numeric(surveysub$purchased_ratings == "HighU")
 
 # Logit: Base
@@ -24,6 +25,55 @@ model_int <- glm(purchased_binary ~ age + gender + income + visit_frequency + ap
                   family = binomial)
 
 summary(model_int)
+
+# Model 12 -> DV: purchased_ratings Highu vs Highj ----
+
+# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+surveysub$highju <- ifelse(surveysub$purchased_ratings == "HighU", 1, 
+                                             ifelse(surveysub$purchased_ratings == "HighJ", 0, NA))
+
+# Filtering out NA values (LowJ and LowU)
+surveysub_filtered <- surveysub %>% filter(!is.na(highju))
+
+# Logit HighU vs HighJ
+base_ju <- glm(highju ~ 
+                 age + 
+                 gender + 
+                 income + 
+                 visit_frequency + 
+                 app_expense + 
+                 previous_experience + 
+                 regulatory_focus + 
+                 platform_preference + 
+                 involvement + 
+                 explore, 
+               data = surveysub_filtered, 
+               family = binomial)
+
+summary(base_ju)
+
+# VIF -----
+
+# for HighU vs rest
+round(vif(model_base), 3)
+
+# for HighU vs HighJ 
+round(vif(base_ju), 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

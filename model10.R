@@ -149,12 +149,93 @@ explore_int <- glm(explore ~
 
 summary(explore_int)
 
+explore_shapenum <- glm(explore ~ 
+                      shape + 
+                      numRating + 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      platform_preference + 
+                      involvement + 
+                      regulatory_focus +
+                      shape * numRating, 
+                    family = binomial, 
+                    data = survey)
+
+summary(explore_shapenum)
+
+# Model with purchased_ratings Highu vs Highj ----
+
+# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+survey$highju <- ifelse(survey$purchased_ratings == "HighU", 1, 
+                           ifelse(survey$purchased_ratings == "HighJ", 0, NA))
+
+# Filtering out NA values (LowJ and LowU)
+survey_filtered <- survey %>% filter(!is.na(highju))
+
+# Logit HighU vs HighJ
+
+# Base
+explore_ju <- glm(explore ~ 
+                    age + 
+                    gender + 
+                    income + 
+                    visit_frequency + 
+                    app_expense + 
+                    previous_experience + 
+                    regulatory_focus + 
+                    platform_preference + 
+                    involvement + 
+                    factor(highju),
+                  family = binomial,
+                  data = survey_filtered)
+
+summary(explore_ju)
+
+# Shape? (numRating cannot be used because Low level is empty 0)
+explore_ju2 <- glm(explore ~ 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      regulatory_focus + 
+                      platform_preference + 
+                      involvement + 
+                      highju +
+                      shape,
+                    family = binomial,
+                    data = survey_filtered)
+
+summary(explore_ju2)
+
+# Interaction?
+explore_jurf <- glm(explore ~ 
+                    age + 
+                    gender + 
+                    income + 
+                    visit_frequency + 
+                    app_expense + 
+                    previous_experience + 
+                    regulatory_focus + 
+                    platform_preference + 
+                    involvement + 
+                    highju +
+                    highju * regulatory_focus,
+                  family = binomial,
+                  data = survey_filtered)
+
+summary(explore_jurf)
 
 
+# VIF ----
 
-
-
-
+# for Explore ~ HighU vs HighJ
+round(vif(explore_ju), 3)
 
 
 
