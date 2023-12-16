@@ -213,7 +213,7 @@ explore_ju2 <- glm(explore ~
 
 summary(explore_ju2)
 
-# Interaction?
+# Interaction
 explore_jurf <- glm(explore ~ 
                     age + 
                     gender + 
@@ -224,13 +224,63 @@ explore_jurf <- glm(explore ~
                     regulatory_focus + 
                     platform_preference + 
                     involvement + 
-                    highju +
-                    highju * regulatory_focus,
+                    factor(highju) +
+                    factor(highju) * regulatory_focus,
                   family = binomial,
                   data = survey_filtered)
 
 summary(explore_jurf)
 
+explore_prev <- glm(explore ~ 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      regulatory_focus + 
+                      platform_preference + 
+                      involvement + 
+                      factor(highju) +
+                      factor(highju) * previous_experience,
+                    family = binomial,
+                    data = survey_filtered)
+
+summary(explore_prev)
+
+explore_freq <- glm(explore ~ 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      regulatory_focus + 
+                      platform_preference + 
+                      involvement + 
+                      factor(highju) +
+                      factor(highju) * visit_frequency,
+                    family = binomial,
+                    data = survey_filtered)
+
+summary(explore_freq)
+
+explore_freq <- glm(explore ~ 
+                      age + 
+                      gender + 
+                      income + 
+                      visit_frequency + 
+                      app_expense + 
+                      previous_experience + 
+                      regulatory_focus + 
+                      platform_preference + 
+                      involvement + 
+                      factor(highju) +
+                      factor(highju) * visit_frequency,
+                    family = binomial,
+                    data = survey_filtered)
+
+summary(explore_freq)
 
 # VIF ----
 

@@ -243,6 +243,69 @@ verify_counts <- survey %>%
 sum(verify_counts$Count)
 
 
+library(ggplot2)
+library(dplyr)
+
+# Assuming that 'numRating' is a numeric variable that needs to be categorized into 'High' and 'Low'
+survey$rating_category <- ifelse(survey$numRating > threshold, "High", "Low") # Replace 'threshold' with the appropriate value
+survey$rating_category <- factor(survey$rating_category, levels = c("High", "Low"))
+
+# Now, create the dodged bar plot
+dodged_bar_plot <- ggplot(survey, aes(x = shape, fill = regulatory_focus)) +
+  geom_bar(position = position_dodge(width = 0.7), width = 0.6) +
+  facet_wrap(~rating_category) + # Facets for 'High' and 'Low' numRating
+  labs(title = "Distribution of Shapes by Regulatory Focus and NumRating",
+       x = "Shape",
+       y = "Count",
+       fill = "Regulatory Focus") +
+  theme_minimal()
+
+dodged_bar_plot
+
+
+# Visualization 
+new_dodged <- ggplot(survey, aes(x = shape)) +
+  geom_bar(position = position_dodge(width = 0.7), width = 0.6) +
+  facet_wrap(~numRating) + # Facets for 'High' and 'Low' numRating
+  labs(title = "Distribution of Shapes by NumRating",
+       x = "Shape",
+       y = "Count") +
+  theme_minimal()
+
+new_dodged
+
+bar_plot <- ggplot(survey, aes(x = shape, y = purchased_ratings, fill = numRating)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
+  labs(title = "Purchase Count by Shape and NumRating",
+       x = "Shape",
+       y = "Purchase Count",
+       fill = "NumRating") +
+  theme_minimal()
+
+bar_plot
+
+library(ggplot2)
+
+
+purchase_summary <- survey %>%
+  group_by(shape, numRating) %>%
+  summarise(purchase_count = n())
+
+
+quadrant_bar_plot <- ggplot(purchase_summary, aes(x = shape, y = purchase_count, fill = numRating)) +
+  geom_col(position = position_dodge(width = 0.7)) +
+  facet_grid(numRating ~ shape) + # Create a 2x2 grid layout for the quadrants
+  labs(title = "Purchase Count by Shape and NumRating",
+       x = "Shape",
+       y = "Purchase Count",
+       fill = "NumRating") +
+  theme_minimal() +
+  theme(strip.text.x = element_blank(), # Remove facet labels on top
+        strip.text.y = element_blank()) # Remove facet labels on right
+
+quadrant_bar_plot
+
+
 
 
 

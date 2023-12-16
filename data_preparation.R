@@ -266,6 +266,9 @@ survey$purchased_ratings <-
 survey$shape <- 
   relevel(factor(survey$shape), ref = "J")
 
+survey$numRating <- 
+  relevel(factor(survey$numRating), ref = "Low")
+
 survey$explore <- 
   relevel(factor(survey$explore), ref = "FALSE")
 

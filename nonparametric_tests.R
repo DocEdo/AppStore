@@ -63,7 +63,7 @@ reg_x_ratings <- aov(
   data = surveysub
 )
 summary(reg_x_ratings)
-TukeyHSD(reg_x_ratings, conf.level = 0.01)
+# TukeyHSD(reg_x_ratings, conf.level = 0.01)
 
 # New tests with large dataset -----
 

@@ -32,6 +32,10 @@ summary(model_int)
 surveysub$highju <- ifelse(surveysub$purchased_ratings == "HighU", 1, 
                                              ifelse(surveysub$purchased_ratings == "HighJ", 0, NA))
 
+# Trying something during meeting
+surveysub$regulatory_focus <- 
+  relevel(factor(surveysub$regulatory_focus), ref = "Promotion")
+
 # Filtering out NA values (LowJ and LowU)
 surveysub_filtered <- surveysub %>% filter(!is.na(highju))
 
@@ -51,6 +55,25 @@ base_ju <- glm(highju ~
                family = binomial)
 
 summary(base_ju)
+
+# Interaction
+
+int_ju <- glm(highju ~ 
+                 age + 
+                 gender + 
+                 income + 
+                 visit_frequency + 
+                 app_expense + 
+                 previous_experience + 
+                 regulatory_focus + 
+                 platform_preference + 
+                 involvement + 
+                 explore +
+               regulatory_focus * explore, 
+               data = surveysub_filtered, 
+               family = binomial)
+
+summary(int_ju)
 
 # VIF -----
 
