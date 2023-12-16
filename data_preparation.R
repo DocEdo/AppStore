@@ -13,17 +13,26 @@ library("psych")
 # File
 survey <- read.csv("regression_dummy_rf.csv", header=T)
 
+# Extract highU and highJ exploration for each subject
+allHighU <- survey[survey$purchased_ratings == "HighU", ]
+highU_explored <- (allHighU$review == "Read") | (allHighU$detail == "Read")
+
+allHighJ <- survey[survey$purchased_ratings == "HighJ", ]
+highJ_explored <- (allHighJ$review == "Read") | (allHighJ$detail == "Read")
+
 # New data without 4 entries per person
 purchases <- survey[survey$purchase == 1, ]
-purchases
+purchases$highU_explored <- factor(highU_explored)
+purchases$highJ_explored <- factor(highJ_explored)
 
 # Select only required columns
 surveysub <- subset(purchases, select = c(
-  id, subject, purchase, appname, combine, 
-  regulatory_focus, platform_preference, 
-  visit_frequency, app_expense, previous_experience, 
-  gender, income, involvement, age, visit_mean, 
-  directlyPurchase, review, detail, apporder, appname, numRating)
+  id, subject, purchase, appname, combine,
+  regulatory_focus, platform_preference,
+  visit_frequency, app_expense, previous_experience,
+  gender, income, involvement, age, visit_mean,
+  directlyPurchase, review, detail, apporder, appname, numRating,
+  highU_explored, highJ_explored)
 )
 
 # Create a new column: purchased_ratings
@@ -33,8 +42,8 @@ colnames(surveysub)[
 surveysub$purchased_ratings
 
 # Create the new column: shape
-surveysub$shape <- 
-  ifelse(surveysub$purchased_ratings == "HighJ" | 
+surveysub$shape <-
+  ifelse(surveysub$purchased_ratings == "HighJ" |
            surveysub$purchased_ratings == "LowJ", "J", "U")
 
 surveysub$shape
@@ -109,8 +118,8 @@ detail_review_filtered <- join_survey %>%
 # view(detail_review_filtered)
 
 # Creating column
-detail_review_filtered$directly <- 
-  ifelse(detail_review_filtered$noDetail_purchase == 1 & 
+detail_review_filtered$directly <-
+  ifelse(detail_review_filtered$noDetail_purchase == 1 &
            detail_review_filtered$noReview_purchase == 1, 1, 0)
 
 # Compare both direct columns
@@ -138,20 +147,20 @@ if (!are_equal2) {
 #   surveysub$regulatory_focus == 1, "Prevention", "Promotion")
 
 # Changing integer columns to factors in surveysub and survey
-surveysub <- surveysub %>% 
-  mutate(gender = 
-           factor(ifelse(gender == 1, "Female", "Male")), 
-         regulatory_focus = 
+surveysub <- surveysub %>%
+  mutate(gender =
+           factor(ifelse(gender == 1, "Female", "Male")),
+         regulatory_focus =
            factor(ifelse(regulatory_focus == 1, "Prevention", "Promotion")),
-         platform_preference = 
+         platform_preference =
            factor(ifelse(platform_preference == 1, "GooglePlay", "AppStore")),
          directlyPurchase =
            factor(ifelse(directlyPurchase == 1, "Yes", "No")),
-         review = 
+         review =
            factor(ifelse(review == 1, "Read", "NotRead")),
-         detail = 
+         detail =
            factor(ifelse(detail == 1, "Read", "NotRead")),
-         numRating = 
+         numRating =
            factor(ifelse(numRating == 1, "High", "Low")),
          involvement = factor(involvement),
          visit_mean = factor(visit_mean),
@@ -161,20 +170,20 @@ surveysub <- surveysub %>%
          DetailOther = factor(DetailOther),
   )
 
-survey <- survey %>% 
-  mutate(gender = 
-           factor(ifelse(gender == 1, "Female", "Male")), 
-         regulatory_focus = 
+survey <- survey %>%
+  mutate(gender =
+           factor(ifelse(gender == 1, "Female", "Male")),
+         regulatory_focus =
            factor(ifelse(regulatory_focus == 1, "Prevention", "Promotion")),
-         platform_preference = 
+         platform_preference =
            factor(ifelse(platform_preference == 1, "GooglePlay", "AppStore")),
          directlyPurchase =
            factor(ifelse(directlyPurchase == 1, "Yes", "No")),
-         review = 
+         review =
            factor(ifelse(review == 1, "Read", "NotRead")),
-         detail = 
+         detail =
            factor(ifelse(detail == 1, "Read", "NotRead")),
-         numRating = 
+         numRating =
            factor(ifelse(numRating == 1, "High", "Low")),
          involvement = factor(involvement)
   )
@@ -186,7 +195,7 @@ surveysub$det_rev <- paste(surveysub$review, surveysub$detail, sep = "_")
 
 head(surveysub$det_rev, 10)
 
-surveysub <- surveysub %>% 
+surveysub <- surveysub %>%
   mutate(det_rev = factor(det_rev))
 
 surveysub$det_rev <- relevel(surveysub$det_rev, ref = "Read_Read")
@@ -211,83 +220,83 @@ surveysub$det_rev_maj
 surveysub$explore <- (surveysub$detail == "Read") | (surveysub$review == "Read")
 surveysub$readboth <- (surveysub$detail == "Read") & (surveysub$review == "Read")
 
-surveysub <- surveysub %>% 
+surveysub <- surveysub %>%
   mutate(readboth = factor(readboth),
          explore = factor(explore)
          )
 
-surveysub$regulatory_focus <- 
+surveysub$regulatory_focus <-
   relevel(factor(surveysub$regulatory_focus), ref = "Promotion")
 
-surveysub$explore <- 
+surveysub$explore <-
   relevel(factor(surveysub$explore), ref = "TRUE")
 
 # Re leveling reference categories ----
 
-surveysub$purchased_ratings <- 
+surveysub$purchased_ratings <-
   relevel(factor(surveysub$purchased_ratings), ref = "HighJ")
 
-surveysub$shape <- 
+surveysub$shape <-
   relevel(factor(surveysub$shape), ref = "J")
 
-surveysub$explore <- 
+surveysub$explore <-
   relevel(factor(surveysub$explore), ref = "FALSE")
 
-surveysub$gender <- 
+surveysub$gender <-
   relevel(factor(surveysub$gender), ref = "Male")
 
-surveysub$involvement <- 
+surveysub$involvement <-
   relevel(factor(surveysub$involvement), ref = "0")
 
-surveysub$platform_preference <- 
+surveysub$platform_preference <-
   relevel(factor(surveysub$platform_preference), ref = "GooglePlay")
 
-surveysub$regulatory_focus <- 
+surveysub$regulatory_focus <-
   relevel(factor(surveysub$regulatory_focus), ref = "Prevention")
 
 # Survey data set changes for FE ----
 survey$explore <- (survey$detail == "Read") | (survey$review == "Read")
 
-survey <- survey %>% 
+survey <- survey %>%
   mutate(explore = factor(explore)
          )
 
 colnames(survey)[
   which(names(survey) == "combine")] <- "purchased_ratings"
 
-survey$shape <- 
-  ifelse(survey$purchased_ratings == "HighJ" | 
+survey$shape <-
+  ifelse(survey$purchased_ratings == "HighJ" |
            survey$purchased_ratings == "LowJ", "J", "U")
 
 # Releveling for survey ----
-survey$purchased_ratings <- 
+survey$purchased_ratings <-
   relevel(factor(survey$purchased_ratings), ref = "HighJ")
 
-survey$shape <- 
+survey$shape <-
   relevel(factor(survey$shape), ref = "J")
 
-survey$numRating <- 
+survey$numRating <-
   relevel(factor(survey$numRating), ref = "Low")
 
-survey$explore <- 
+survey$explore <-
   relevel(factor(survey$explore), ref = "FALSE")
 
-survey$gender <- 
+survey$gender <-
   relevel(factor(survey$gender), ref = "Male")
 
-survey$involvement <- 
+survey$involvement <-
   relevel(factor(survey$involvement), ref = "0")
 
-survey$platform_preference <- 
+survey$platform_preference <-
   relevel(factor(survey$platform_preference), ref = "GooglePlay")
 
-survey$regulatory_focus <- 
+survey$regulatory_focus <-
   relevel(factor(survey$regulatory_focus), ref = "Prevention")
 
 # Adding column of open ended questions to surveysub ----
 
 # Change Regulatory Focus to use for comparison
-join_survey$regulatory_focus <- 
+join_survey$regulatory_focus <-
   ifelse(tolower(join_survey$regulatory_focus) == "prevention", "Prevention",
   ifelse(tolower(join_survey$regulatory_focus) == "promotion", "Promotion",
          join_survey$regulatory_focus)
