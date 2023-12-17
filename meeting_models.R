@@ -1,4 +1,4 @@
-# # Jaewon meetings
+# # J1 + SR + ED meetings
 
 # Packages ----
 require("nnet")
@@ -152,12 +152,6 @@ summary(highju_prevention)
 
 # IVs: Explored HighU ----
 
-# Create column Explored HighU
-surveysub <- surveysub %>%
-  mutate(explored_highu = ifelse(purchased_ratings == "HighU" & 
-                                   ((detail == "Read") | (review == "Read")), 
-                                 "Explored", "Not Explored"))
-
 # Get rid of NAs in HighJU
 surveysub_filtered2 <- surveysub %>% filter(!is.na(highju))
 
@@ -167,7 +161,7 @@ surveysub_filtered2 <- surveysub %>% filter(!is.na(highju))
 surveysub_filtered2$regulatory_focus <- 
   relevel(factor(surveysub_filtered2$regulatory_focus), ref = "Prevention")
 
-highju_exploredu_prev <- glm(highju ~ 
+highju_hiu_prev <- glm(highju ~ 
                           age + 
                           gender + 
                           income + 
@@ -177,18 +171,18 @@ highju_exploredu_prev <- glm(highju ~
                           regulatory_focus + 
                           platform_preference + 
                           involvement + 
-                          factor(explored_highu) + 
-                          regulatory_focus * factor(explored_highu), 
+                          highU_explored + 
+                          regulatory_focus * highU_explored, 
                         data = surveysub_filtered2, 
                         family = binomial)
 
-summary(highju_exploredu_prev)
+summary(highju_hiu_prev)
 
 # Promotion
 surveysub_filtered2$regulatory_focus <- 
   relevel(factor(surveysub_filtered2$regulatory_focus), ref = "Promotion")
 
-highju_exploredu_prom <- glm(highju ~ 
+highju_hiu_prom <- glm(highju ~ 
                 age + 
                 gender + 
                 income + 
@@ -198,17 +192,17 @@ highju_exploredu_prom <- glm(highju ~
                 regulatory_focus + 
                 platform_preference + 
                 involvement + 
-                factor(explored_highu) + 
-                regulatory_focus * factor(explored_highu), 
+                highU_explored + 
+                regulatory_focus * highU_explored, 
               data = surveysub_filtered2, 
               family = binomial)
 
-summary(highju_exploredu_prom)
+summary(highju_hiu_prom)
 
 
 # LOGIT: RestHighU ~ . + ExploreHighU + RF:ExploreHighU 
 
-highu_rfexplored_highu <- glm(highu_rest ~
+hirest_rfhighu <- glm(highu_rest ~
                          age + 
                          gender + 
                          income + 
@@ -217,20 +211,14 @@ highu_rfexplored_highu <- glm(highu_rest ~
                          regulatory_focus + 
                          platform_preference + 
                          involvement + 
-                         factor(explored_highu) + 
-                         factor(explored_highu) * regulatory_focus, 
+                         highU_explored + 
+                         highU_explored * regulatory_focus, 
                        data = surveysub, 
                        family = binomial)
 
-summary(highu_rfexplored_highu)
+summary(hirest_rfhighu)
 
 # IVs: Explored HighJ ----
-
-# Explored HighJ
-surveysub <- surveysub %>%
-  mutate(explored_highj = ifelse(purchased_ratings == "HighJ" & 
-                                   ((detail == "Read") | (review == "Read")), 
-                                 "Explored", "Not Explored"))
 
 # 2 x Logit: HighJU ~ . + Explore + RF:Explore (relevel RF both ways)
 
@@ -240,7 +228,7 @@ surveysub_filtered3 <- surveysub %>% filter(!is.na(highju))
 surveysub_filtered3$regulatory_focus <- 
   relevel(factor(surveysub_filtered3$regulatory_focus), ref = "Prevention")
 
-highju_exploredj_prev <- glm(highju ~ 
+highju_hij_prev <- glm(highju ~ 
                               age + 
                               gender + 
                               income + 
@@ -250,18 +238,18 @@ highju_exploredj_prev <- glm(highju ~
                               regulatory_focus + 
                               platform_preference + 
                               involvement + 
-                              factor(explored_highj) + 
-                              regulatory_focus * factor(explored_highj), 
+                              highJ_explored + 
+                              regulatory_focus * highJ_explored, 
                             data = surveysub_filtered3, 
                             family = binomial)
 
-summary(highju_exploredj_prev)
+summary(highju_hij_prev)
 
 # Promotion
 surveysub_filtered3$regulatory_focus <- 
   relevel(factor(surveysub_filtered3$regulatory_focus), ref = "Promotion")
 
-highju_exploredj_prom <- glm(highju ~ 
+highju_hij_prom <- glm(highju ~ 
                               age + 
                               gender + 
                               income + 
@@ -271,17 +259,17 @@ highju_exploredj_prom <- glm(highju ~
                               regulatory_focus + 
                               platform_preference + 
                               involvement + 
-                              factor(explored_highj) + 
-                              regulatory_focus * factor(explored_highj), 
+                              highJ_explored + 
+                              regulatory_focus * highJ_explored, 
                             data = surveysub_filtered3, 
                             family = binomial)
 
-summary(highju_exploredj_prom)
+summary(highju_hij_prom)
 
 
 # LOGIT: RestHighU ~ . + ExploreHighU + RF:ExploreHighU 
 
-highu_rfexplored_highj <- glm(highu_rest ~
+hirest_rfhighj <- glm(highu_rest ~
                                age + 
                                gender + 
                                income + 
@@ -290,12 +278,12 @@ highu_rfexplored_highj <- glm(highu_rest ~
                                regulatory_focus + 
                                platform_preference + 
                                involvement + 
-                               factor(explored_highj) + 
-                               factor(explored_highj) * regulatory_focus, 
+                               highJ_explored + 
+                               highJ_explored * regulatory_focus, 
                              data = surveysub, 
                              family = binomial)
 
-summary(highu_rfexplored_highj)
+summary(hirest_rfhighj)
 
 
 # IV: Explored HighU vs HighJ ----
@@ -380,6 +368,9 @@ highu_rfexplore_highs <- glm(highu_rest ~
                              family = binomial)
 
 summary(highu_rfexplore_highs)
+
+
+
 
 
 

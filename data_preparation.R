@@ -13,17 +13,9 @@ library("psych")
 # File
 survey <- read.csv("regression_dummy_rf.csv", header=T)
 
-# Extract highU and highJ exploration for each subject
-allHighU <- survey[survey$purchased_ratings == "HighU", ]
-highU_explored <- (allHighU$review == "Read") | (allHighU$detail == "Read")
-
-allHighJ <- survey[survey$purchased_ratings == "HighJ", ]
-highJ_explored <- (allHighJ$review == "Read") | (allHighJ$detail == "Read")
-
 # New data without 4 entries per person
 purchases <- survey[survey$purchase == 1, ]
-purchases$highU_explored <- factor(highU_explored)
-purchases$highJ_explored <- factor(highJ_explored)
+
 
 # Select only required columns
 surveysub <- subset(purchases, select = c(
@@ -31,8 +23,7 @@ surveysub <- subset(purchases, select = c(
   regulatory_focus, platform_preference,
   visit_frequency, app_expense, previous_experience,
   gender, income, involvement, age, visit_mean,
-  directlyPurchase, review, detail, apporder, appname, numRating,
-  highU_explored, highJ_explored)
+  directlyPurchase, review, detail, apporder, appname, numRating)
 )
 
 # Create a new column: purchased_ratings
@@ -311,4 +302,15 @@ all(surveysub$regulatory_focus == join_survey$regulatory_focus)
 
 
 
+
+
+# Extract highU and highJ exploration for each subject ----
+allHighU <- survey[survey$purchased_ratings == "HighU", ]
+highU_explored <- (allHighU$review == "Read") | (allHighU$detail == "Read")
+
+allHighJ <- survey[survey$purchased_ratings == "HighJ", ]
+highJ_explored <- (allHighJ$review == "Read") | (allHighJ$detail == "Read")
+
+surveysub$highU_explored <- factor(highU_explored)
+surveysub$highJ_explored <- factor(highJ_explored)
 
