@@ -155,7 +155,7 @@ summary(highju_prevention)
 # Get rid of NAs in HighJU
 surveysub_filtered2 <- surveysub %>% filter(!is.na(highju))
 
-# 2 x Logit: HighJU ~ . + Explore + RF:Explore (relevel RF both ways)
+# 2 x Logit: HighJU ~ . + Explore + RF:HighUExplored (relevel RF both ways)
 
 # Prevention
 surveysub_filtered2$regulatory_focus <- 
@@ -217,6 +217,23 @@ hirest_rfhighu <- glm(highu_rest ~
                        family = binomial)
 
 summary(hirest_rfhighu)
+
+# LOGIT: RestHighU ~ . + ExploreHighU
+
+hirest_highuexplored <- glm(highu_rest ~
+                        age + 
+                        gender + 
+                        income + 
+                        visit_frequency + app_expense + 
+                        previous_experience + 
+                        regulatory_focus + 
+                        platform_preference + 
+                        involvement + 
+                        highU_explored, 
+                      data = surveysub, 
+                      family = binomial)
+
+summary(hirest_highuexplored)
 
 # IVs: Explored HighJ ----
 
@@ -286,101 +303,75 @@ hirest_rfhighj <- glm(highu_rest ~
 summary(hirest_rfhighj)
 
 
-# IV: Explored HighU vs HighJ ----
-surveysub_filtered4 <- surveysub %>% filter(!is.na(highju))
+# LOGIT: HighU_Explored ~ . ----
 
-surveysub_filtered4 <- surveysub %>%
-  filter(purchased_ratings %in% c("HighU", "HighJ")) %>%
-  mutate(explored_highs = case_when(
-    purchased_ratings == "HighU" & (detail == "Read" | review == "Read") ~ "Explored HighU",
-    purchased_ratings == "HighJ" & (detail == "Read" | review == "Read") ~ "Explored HighJ"
-  )) %>%
-  filter(!is.na(explored_highs))
+explored_base <- glm(highU_explored ~ 
+                       age + 
+                       gender + 
+                       income + 
+                       visit_frequency + 
+                       app_expense + 
+                       previous_experience + 
+                       regulatory_focus + 
+                       platform_preference + 
+                       involvement,
+                     family = binomial,
+                     data = surveysub)
 
-# 2 x Logit: HighJU ~ . + Explore + RF:Explored HighU vs HighJ (relevel RF both ways)
+summary(explored_base)
 
-# Prevention
-surveysub_filtered4$regulatory_focus <- 
-  relevel(factor(surveysub_filtered4$regulatory_focus), ref = "Prevention")
+explored_shapexrating <- glm(highU_explored ~ 
+                        age + 
+                        gender + 
+                        income + 
+                        visit_frequency + 
+                        app_expense + 
+                        previous_experience + 
+                        regulatory_focus + 
+                        platform_preference + 
+                        involvement +
+                        shape +
+                        numRating +
+                        shape * numRating,
+                      family = binomial,
+                      data = surveysub)
 
-highs_explored_prev <- glm(highju ~ 
-                              age + 
-                              gender + 
-                              income + 
-                              visit_frequency + 
-                              app_expense + 
-                              previous_experience + 
-                              regulatory_focus + 
-                              platform_preference + 
-                              involvement + 
-                              factor(explored_highs) + 
-                              regulatory_focus * factor(explored_highs), 
-                            data = surveysub_filtered4, 
-                            family = binomial,
-                            control = glm.control(maxit = 50))
+summary(explored_shapexrating)
 
-summary(highs_explored_prev)
-
-# Promotion
-surveysub_filtered4$regulatory_focus <- 
-  relevel(factor(surveysub_filtered4$regulatory_focus), ref = "Promotion")
-
-highs_explored_prom <- glm(highju ~ 
-                              age + 
-                              gender + 
-                              income + 
-                              visit_frequency + 
-                              app_expense + 
-                              previous_experience + 
-                              regulatory_focus + 
-                              platform_preference + 
-                              involvement + 
-                              factor(explored_highs) + 
-                              regulatory_focus * factor(explored_highs), 
-                            data = surveysub_filtered4, 
-                            family = binomial)
-
-summary(highs_explored_prom)
-
-
-# LOGIT: RestHighU ~ . + ExploreHighU + RF:ExploreHighU 
-
-surveysub_rest <- surveysub %>%
-  filter(purchased_ratings %in% c("HighU", "HighJ")) %>%
-  mutate(explored_highs = case_when(
-    purchased_ratings == "HighU" & (detail == "Read" | review == "Read") ~ "Explored HighU",
-    purchased_ratings == "HighJ" & (detail == "Read" | review == "Read") ~ "Explored HighJ"
-  )) %>%
-  filter(!is.na(explored_highs))
-
-highu_rfexplore_highs <- glm(highu_rest ~
+explored_shapexrf <- glm(highU_explored ~ 
                                age + 
                                gender + 
                                income + 
-                               visit_frequency + app_expense + 
+                               visit_frequency + 
+                               app_expense + 
                                previous_experience + 
                                regulatory_focus + 
                                platform_preference + 
-                               involvement + 
-                               factor(explored_highs) + 
-                               factor(explored_highs) * regulatory_focus, 
-                             data = surveysub_rest, 
-                             family = binomial)
+                               involvement +
+                               shape +
+                               numRating +
+                               shape * regulatory_focus,
+                             family = binomial,
+                             data = surveysub)
 
-summary(highu_rfexplore_highs)
+summary(explored_shapexrf)
 
+explored_ratingxrf <- glm(highU_explored ~ 
+                               age + 
+                               gender + 
+                               income + 
+                               visit_frequency + 
+                               app_expense + 
+                               previous_experience + 
+                               regulatory_focus + 
+                               platform_preference + 
+                               involvement +
+                               shape +
+                               numRating +
+                               numRating * regulatory_focus,
+                             family = binomial,
+                             data = surveysub)
 
-
-
-
-
-
-
-
-
-
-
-
-
+summary(explored_ratingxrf)
 
 

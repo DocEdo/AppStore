@@ -1,6 +1,7 @@
 # Packages -----
 source("data_preparation.R")
 source("model2.R")
+source("meeting_models.R")
 library("tidyverse")
 library("tidytext")
 library("vcd")
@@ -365,6 +366,139 @@ quadrant_bar_plot
 
 
 
+
+
+
+
+
+
+
+# Average Purchase HighU ----
+surveysub_clean <- surveysub %>%
+  filter(!is.na(highju))
+
+# Dodged Bar Plot
+
+# Compute the average purchase of HighU for each group of regulatory focus and exploration status
+avg_purchase <- surveysub_clean %>%
+  group_by(regulatory_focus, highU_explored) %>%
+  summarise(Avg_Purchase = mean(highju, na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(avg_purchase, aes(x = as.factor(regulatory_focus), y = Avg_Purchase, fill = as.factor(highU_explored))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = round(Avg_Purchase, 2), 
+                group = highU_explored),
+            position = position_dodge(width = 0.7), 
+            vjust = -0.25, # Adjust labels above bars
+            size = 3.5) +
+  scale_fill_manual(values = c("brown2", "lightgreen"), labels = c("E=0", "E=1")) +
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", fill = "Explored HighU (E)") +
+  theme_minimal()
+
+# With error bars to represent std deviations
+# To represent one standard deviation around the mean, we need to calculate the standard deviation for each group first.
+
+# Calculate means and standard deviations for each group
+grouped_stats <- surveysub %>%
+  group_by(regulatory_focus, highU_explored) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SD = sd(highju, na.rm = TRUE),
+    SE = SD / sqrt(n())
+  ) %>%
+  ungroup()
+
+# Add a column for the upper and lower bounds of the error bars (mean +/- 1.96*SE for 95% CI)
+grouped_stats <- grouped_stats %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+# Plot with error bars -> Overlapping problem
+ggplot(grouped_stats, aes(x = as.factor(regulatory_focus), y = Avg_Purchase, fill = as.factor(highU_explored))) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), 
+                position = position_dodge(width = 0.7), 
+                width = 0.25) +
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", fill = "Explored HighU (E)") +
+  theme_minimal()
+
+# Same plot with error bars but narrower bars
+ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_Purchase, fill = highU_explored)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +  # Adjust the bar width here
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    position = position_dodge(width = 0.7), 
+    width = 0.2
+  ) +
+  scale_fill_manual(values = c("brown2", "lightgreen"), labels = c("Not Explored" = "FALSE", "Explored" = "TRUE")) +
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", fill = "HighU Explored") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# FOUR group visualization ----
+
+# Average purchase rate for each group
+group_means <- surveysub %>%
+  group_by(highU_explored, regulatory_focus) %>%
+  summarise(Avg_Purchase = mean(highu_rest, na.rm = TRUE)) %>%
+  ungroup()
+
+# Plot the average purchase rate for each group as points
+ggplot(group_means, aes(x = as.factor(regulatory_focus), y = Avg_Purchase, group = highU_explored, color = as.factor(highU_explored))) +
+  geom_line(aes(linetype = as.factor(highU_explored)), position = position_dodge(width = 0.2)) +
+  geom_point(size = 4, position = position_dodge(width = 0.2)) +
+  scale_color_manual(values = c("brown2", "lightgreen"), labels = c("Not Explored", "Explored")) +
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", color = "HighU Explored") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Viz: logit RestHighU ~ . + ExploreHighU + RF:ExploreHighU ----
+
+model_coef <- tidy(hirest_rfhighu)
+
+# Coefficient plot
+ggplot(model_coef, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
+  coord_flip() +
+  xlab("Variables") +
+  ylab("Estimates") +
+  ggtitle("Coefficient Plot of the Logistic Regression Model") +
+  theme_minimal()
+
+library(ggplot2)
+
+# newdata
+newdata <- with(surveysub, expand.grid(
+  age = mean(age, na.rm = TRUE),
+  gender = levels(gender)[1],
+  income = mean(income, na.rm = TRUE),
+  visit_frequency = mean(visit_frequency, na.rm = TRUE),
+  app_expense = mean(app_expense, na.rm = TRUE),
+  previous_experience = mean(previous_experience, na.rm = TRUE),
+  regulatory_focus = levels(regulatory_focus),
+  platform_preference = levels(platform_preference)[1],
+  involvement = levels(involvement)[1],
+  highU_explored = levels(highU_explored)
+))
+
+# Predict probabilities
+newdata$predicted_prob <- predict(hirest_rfhighu, newdata = newdata, type = "response")
+
+# Interaction plot
+ggplot(newdata, aes(x = regulatory_focus, y = predicted_prob, color = highU_explored, group = highU_explored)) +
+  geom_line(aes(linetype = highU_explored), size = 1.2) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("brown2", "lightgreen"),
+                     labels = c("HighU Not Explored", "HighU Explored")) +
+  labs(y = "Predicted Probability of Choosing HighU",
+       x = "Regulatory Focus",
+       color = "HighU Explored") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 
 
 

@@ -300,7 +300,8 @@ all(surveysub$why == join_survey$why)
 
 all(surveysub$regulatory_focus == join_survey$regulatory_focus)
 
-
+surveysub$regulatory_focus <-
+  relevel(factor(surveysub$regulatory_focus), ref = "Prevention")
 
 
 
@@ -314,3 +315,22 @@ highJ_explored <- (allHighJ$review == "Read") | (allHighJ$detail == "Read")
 surveysub$highU_explored <- factor(highU_explored)
 surveysub$highJ_explored <- factor(highJ_explored)
 
+
+# HighU variables ----
+
+# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+survey$highju <- ifelse(survey$purchased_ratings == "HighU", 1, 
+                        ifelse(survey$purchased_ratings == "HighJ", 0, NA))
+
+# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+surveysub$highju <- ifelse(surveysub$purchased_ratings == "HighU", 1, 
+                           ifelse(surveysub$purchased_ratings == "HighJ", 0, NA))
+
+# Recoding purchased_ratings to a binary of HighU vs the rest in surveysub
+surveysub$highu_rest <- as.numeric(surveysub$purchased_ratings == "HighU")
+
+# Recoding purchased_ratings to a binary of HighU vs the rest in survey
+survey$highu_rest <- as.numeric(survey$purchased_ratings == "HighU")
+
+# Filtering out NA values (LowJ and LowU)
+survey_filtered <- survey %>% filter(!is.na(highju))
