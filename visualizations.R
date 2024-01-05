@@ -438,6 +438,34 @@ ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_Purchase, fill = highU_e
   theme_minimal() +
   theme(legend.position = "bottom")
 
+# Average Purchase HighU with flipped x axis and grouping ----
+
+grouped_stats <- surveysub %>%
+  group_by(highU_explored, regulatory_focus) %>%
+  summarise(
+    Avg_Purchase = mean(highu_rest, na.rm = TRUE), # Ensure to use highu_rest
+    SD = sd(highu_rest, na.rm = TRUE), # Ensure to use highu_rest
+    SE = SD / sqrt(n())
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+# Plot with error bars but narrower bars
+ggplot(grouped_stats, aes(x = highU_explored, y = Avg_Purchase, fill = regulatory_focus)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper, group = regulatory_focus),
+    position = position_dodge(width = 0.7), 
+    width = 0.2
+  ) +
+  scale_fill_manual(values = c("brown2", "lightgreen"), labels = c("Prevention" = "Prevention", "Promotion" = "Promotion")) +
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "HighU Explored", fill = "Regulatory Focus") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
 # FOUR group visualization ----
 
 # Average purchase rate for each group

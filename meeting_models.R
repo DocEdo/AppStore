@@ -5,6 +5,9 @@ require("nnet")
 require("mlogit")
 require("car")
 source("data_preparation.R")
+require("rcompanion")
+require("dunn.test")
+require("FSA")
 
 # Models
 
@@ -202,7 +205,13 @@ summary(highju_hiu_prom)
 
 # LOGIT: RestHighU ~ . + ExploreHighU + RF:ExploreHighU 
 
-hirest_rfhighu <- glm(highu_rest ~
+filter_highu <- surveysub %>% filter(!is.na(highju))
+
+# Prevention resthighu
+filter_highu$regulatory_focus <- 
+  relevel(factor(filter_highu$regulatory_focus), ref = "Prevention")
+
+hirest_rfhighu_prev <- glm(highu_rest ~
                          age + 
                          gender + 
                          income + 
@@ -213,10 +222,30 @@ hirest_rfhighu <- glm(highu_rest ~
                          involvement + 
                          highU_explored + 
                          highU_explored * regulatory_focus, 
-                       data = surveysub, 
+                       data = filter_highu, 
                        family = binomial)
 
-summary(hirest_rfhighu)
+summary(hirest_rfhighu_prev)
+
+# Promotion resthighu
+filter_highu$regulatory_focus <- 
+  relevel(factor(filter_highu$regulatory_focus), ref = "Promotion")
+
+hirest_rfhighu_prom <- glm(highu_rest ~
+                        age + 
+                        gender + 
+                        income + 
+                        visit_frequency + app_expense + 
+                        previous_experience + 
+                        regulatory_focus + 
+                        platform_preference + 
+                        involvement + 
+                        highU_explored + 
+                        highU_explored * regulatory_focus, 
+                      data = filter_highu, 
+                      family = binomial)
+
+summary(hirest_rfhighu_prom)
 
 # LOGIT: RestHighU ~ . + ExploreHighU
 
@@ -373,5 +402,30 @@ explored_ratingxrf <- glm(highU_explored ~
                              data = surveysub)
 
 summary(explored_ratingxrf)
+
+
+
+# Kurskal Wallis + Dunn Test ----
+
+# Combined variable of four groups
+surveysub$fourgroups <- with(surveysub, interaction(regulatory_focus, highU_explored, sep = "_"))
+
+kruskal_fourgroups <- kruskal.test(highu_rest ~ fourgroups, data = surveysub)
+kruskal_fourgroups
+
+dunn_fourgroups <- dunnTest(highu_rest ~ fourgroups, data = surveysub, method="bonferroni")
+dunn_fourgroups
+
+kruskal_rf <- kruskal.test(highu_rest ~ regulatory_focus, data = surveysub)
+kruskal_rf
+
+dunn_rf <- dunnTest(highu_rest ~ regulatory_focus, data = surveysub, method="bonferroni")
+dunn_rf
+
+kruskal_highu <- kruskal.test(highu_rest ~ highU_explored, data = surveysub)
+kruskal_highu
+
+dunn_highu <- dunnTest(highu_rest ~ highU_explored, data = surveysub, method="bonferroni")
+dunn_highu
 
 
