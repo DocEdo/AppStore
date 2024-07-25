@@ -5,7 +5,6 @@ source("meeting_models.R")
 library("tidyverse")
 library("tidytext")
 library("vcd")
-library("readx1")
 
 # Visit frequency visualization ----
 
@@ -131,8 +130,7 @@ ggplot(rf_data2, aes(x = explore, y = count, fill = regulatory_focus)) +
 
 join_theme <- read_excel("data_join_(432_valid).xlsx", sheet = "subjectinfo+survey")
 
-# Install and load necessary packages
-install.packages(c("wordcloud", "tm"))
+# Install or load necessary packages
 library(wordcloud)
 library(tm)
 
@@ -243,10 +241,6 @@ verify_counts <- survey %>%
 # Check if the sum of all counts is 1728
 sum(verify_counts$Count)
 
-
-library(ggplot2)
-library(dplyr)
-
 # Assuming that 'numRating' is a numeric variable that needs to be categorized into 'High' and 'Low'
 survey$rating_category <- ifelse(survey$numRating > threshold, "High", "Low") # Replace 'threshold' with the appropriate value
 survey$rating_category <- factor(survey$rating_category, levels = c("High", "Low"))
@@ -307,73 +301,7 @@ quadrant_bar_plot <- ggplot(purchase_summary, aes(x = shape, y = purchase_count,
 quadrant_bar_plot
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Average Purchase HighU ----
+# Average Purchase HighU - Interaction Plot ----
 surveysub_clean <- surveysub %>%
   filter(!is.na(highju))
 
@@ -400,12 +328,13 @@ ggplot(avg_purchase, aes(x = as.factor(regulatory_focus), y = Avg_Purchase, fill
 # To represent one standard deviation around the mean, we need to calculate the standard deviation for each group first.
 
 # Calculate means and standard deviations for each group
-grouped_stats <- surveysub %>%
+grouped_stats <- surveysub_clean %>%
   group_by(regulatory_focus, highU_explored) %>%
   summarise(
     Avg_Purchase = mean(highju, na.rm = TRUE),
     SD = sd(highju, na.rm = TRUE),
-    SE = SD / sqrt(n())
+    SE = SD / sqrt(n()),
+      n = n()
   ) %>%
   ungroup()
 
@@ -426,17 +355,20 @@ ggplot(grouped_stats, aes(x = as.factor(regulatory_focus), y = Avg_Purchase, fil
   theme_minimal()
 
 # Same plot with error bars but narrower bars
-ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_Purchase, fill = highU_explored)) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +  # Adjust the bar width here
+
+avg_purch_highu_plot <- ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_Purchase, fill = highU_explored)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
   geom_errorbar(
     aes(ymin = lower, ymax = upper),
     position = position_dodge(width = 0.7), 
     width = 0.2
   ) +
-  scale_fill_manual(values = c("brown2", "lightgreen"), labels = c("Not Explored" = "FALSE", "Explored" = "TRUE")) +
+  scale_fill_brewer(palette="Set2", labels = c("Not Explored" = "FALSE", "Explored" = "TRUE")) +  # ColorBrewer palette
   labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", fill = "HighU Explored") +
   theme_minimal() +
   theme(legend.position = "bottom")
+
+avg_purch_highu_plot
 
 # Average Purchase HighU with flipped x axis and grouping ----
 
@@ -497,8 +429,6 @@ ggplot(model_coef, aes(x = term, y = estimate)) +
   ggtitle("Coefficient Plot of the Logistic Regression Model") +
   theme_minimal()
 
-library(ggplot2)
-
 # newdata
 newdata <- with(surveysub, expand.grid(
   age = mean(age, na.rm = TRUE),
@@ -527,6 +457,698 @@ ggplot(newdata, aes(x = regulatory_focus, y = predicted_prob, color = highU_expl
        color = "HighU Explored") +
   theme_minimal() +
   theme(legend.position = "bottom")
+
+# How many people explored each app (using survey) ----
+
+# Create a new character column based on 'purchased_ratings'
+survey$purchased_ratings_char <- as.character(survey$purchased_ratings)
+
+# General Exploration
+general_explored <- survey %>%
+  filter(review == "Read" | detail == "Read") %>%
+  group_by(subject) %>%
+  summarize(explored_rating_types = list(unique(purchased_ratings_char)))
+general_explored
+
+# HighU Exploration
+highU_explored <- survey %>%
+  filter(purchased_ratings == "HighU", (review == "Read" | detail == "Read")) %>%
+  group_by(subject) %>%
+  summarize(explored_highU_types = list(unique(purchased_ratings_char)))
+
+# Merging the datasets to see them together
+combined_explored <- merge(general_explored, highU_explored, by = "subject", all = TRUE)
+
+combined_explored
+
+# For general exploration summary
+general_explored_summary <- combined_explored %>%
+  mutate(num_explored = lengths(explored_rating_types)) %>%
+  select(subject, num_explored, explored_rating_types)
+general_explored_summary
+
+# Visualizing count
+rating_type_distribution <- general_explored %>%
+  unnest(explored_rating_types) %>%
+  count(explored_rating_types) %>%
+  arrange(desc(n))
+
+# Plot the distribution
+ggplot(rating_type_distribution, aes(x = explored_rating_types, y = n, fill = explored_rating_types)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = n), vjust = -0.3, size = 3.5) + 
+  theme_minimal() +
+  labs(x = "Ratings Type", y = "Count", title = "Distribution of Explored App Types") +
+  scale_fill_viridis_d()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Count of groups in average purchase of HighU Visualization ----
+
+surveysub_clean <- surveysub %>%
+  filter(!is.na(highju))
+
+group_counts <- surveysub_clean %>%
+  group_by(regulatory_focus, highU_explored) %>%
+  summarise(count = n(), .groups = 'drop')
+
+group_counts
+
+group_count_plot <- ggplot(group_counts, aes(x = regulatory_focus, y = count, fill = highU_explored)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(y = "Count of People", x = "Regulatory Focus", fill = "HighU Explored") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+group_count_plot
+
+
+# Users who explored HighU -> What else did they explored? ----
+
+survey <- survey %>%
+  mutate(exploration = (review == "Read" | detail == "Read"))
+
+
+user_explorations <- survey %>%
+  filter(exploration) %>% # Filter rows where exploration happened
+  group_by(subject) %>%
+  summarise(
+    explored_HighU = any(purchased_ratings == "HighU"),
+    explored_HighJ = any(purchased_ratings == "HighJ"),
+    explored_LowJ = any(purchased_ratings == "LowJ"),
+    explored_LowU = any(purchased_ratings == "LowU")
+  ) %>%
+  ungroup()
+
+# Categorize if they explored HighU alone and other things
+exploration_patterns <- user_explorations %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU Alone",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      TRUE ~ "Explored Multiple"
+    )
+  )
+
+# Visualize the patterns
+ggplot(exploration_patterns, aes(x = exploration_category, fill = exploration_category)) +
+  geom_bar(stat = "count") +
+  labs(title = "Exploration Patterns Based on App Types",
+       x = "Exploration Category",
+       y = "Number of Subjects") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# People who purchased HighU and HighJ: What else did they explore? ----
+survey <- survey %>%
+  mutate(
+    explored_HighU = if_else(purchased_ratings == "HighU" & (review == "Read" | detail == "Read"), 1, 0),
+    explored_HighJ = if_else(purchased_ratings == "HighJ" & (review == "Read" | detail == "Read"), 1, 0),
+    explored_LowJ = if_else(purchased_ratings == "LowJ" & (review == "Read" | detail == "Read"), 1, 0),
+    explored_LowU = if_else(purchased_ratings == "LowU" & (review == "Read" | detail == "Read"), 1, 0)
+  )
+
+highU_purchasers <- survey %>%
+  filter(purchased_ratings == "HighU" & purchase == 1)
+
+highJ_purchasers <- survey %>%
+  filter(purchased_ratings == "HighJ" & purchase == 1)
+
+
+# Aggregate exploration for highu and highj purchases
+aggregated_explorations <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    purchase_type = first(purchased_ratings[purchase == 1]),
+    explored_HighU = max(explored_HighU),
+    explored_HighJ = max(explored_HighJ),
+    explored_LowJ = max(explored_LowJ),
+    explored_LowU = max(explored_LowU)
+  ) %>%
+  filter(purchase_type %in% c("HighU", "HighJ")) %>%
+  ungroup()
+
+# Categorize the patterns
+aggregated_explorations <- aggregated_explorations %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU == 1 & explored_HighJ == 0 & explored_LowJ == 0 & explored_LowU == 0 ~ "Only HighU",
+      explored_HighU == 0 & explored_HighJ == 1 & explored_LowJ == 0 & explored_LowU == 0 ~ "Only HighJ",
+      explored_HighU == 1 & explored_HighJ == 1 ~ "HighU+HighJ",
+      TRUE ~ "Explored Multiple"
+    )
+  )
+
+ggplot(aggregated_explorations, aes(x = purchase_type, fill = exploration_category)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Exploration Patterns for HighU vs. HighJ Purchasers",
+       x = "Purchase Type",
+       y = "Count of Users",
+       fill = "Exploration Category") +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Attempt two
+survey <- survey %>%
+  mutate(
+    pp_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
+    pp_HighJ = (review == "Read" | detail == "Read") & purchased_ratings == "HighJ",
+    pp_LowJ = (review == "Read" | detail == "Read") & purchased_ratings == "LowJ",
+    pp_LowU = (review == "Read" | detail == "Read") & purchased_ratings == "LowU"
+  )
+
+aggregated_explorations <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    purchase_type = first(purchased_ratings[purchase == 1]),
+    explored_HighU = max(pp_HighU),
+    explored_HighJ = max(pp_HighJ),
+    explored_LowJ = max(pp_LowJ),
+    explored_LowU = max(pp_LowU)
+  ) %>%
+  filter(purchase_type %in% c("HighU", "HighJ")) %>%
+  ungroup()
+
+aggregated_explorations <- aggregated_explorations %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "Only HighU",
+      !explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "Only HighJ",
+      explored_HighU & explored_HighJ ~ "HighU+HighJ",
+      TRUE ~ "Explored Multiple"
+    )
+  )
+
+ggplot(aggregated_explorations, aes(x = purchase_type, fill = exploration_category)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Post-Purchase Exploration Patterns for HighU vs. HighJ Purchasers",
+       x = "Purchase Type",
+       y = "Count of Users",
+       fill = "Exploration Category") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# ANALYSIS: plot breakdown of all 8 combinations of people who explored HighU: (highu-only; highu+highj; highu+lowu; highu+lowj; highu+.) ----
+
+survey <- survey %>%
+  mutate(
+    explored_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
+    explored_HighJ = (review == "Read" | detail == "Read") & purchased_ratings == "HighJ",
+    explored_LowJ = (review == "Read" | detail == "Read") & purchased_ratings == "LowJ",
+    explored_LowU = (review == "Read" | detail == "Read") & purchased_ratings == "LowU"
+  )
+
+# Seven combinations of HighU and rest
+survey <- survey %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU only",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+HighJ+LowJ",
+      explored_HighU & explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+HighJ+LowU",
+      explored_HighU & !explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+LowJ+LowU",
+      # Do not create a category for users who explored all types (HighU+All)
+      TRUE ~ "Other"  # Users who do not fit the above categories
+    )
+  )
+
+# Aggregate 
+exploration_counts <- survey %>%
+  filter(exploration_category != "Other") %>%
+  group_by(exploration_category) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+# Plot
+highu_seven_combs <- ggplot(
+  exploration_counts, aes(x = exploration_category, y = count, fill = exploration_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipped coordinates
+  labs(title = "Exploration Combinations Among HighU Explorers",
+       x = "Exploration Category",
+       y = "Number of Users") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+highu_seven_combs
+
+# 8 Combinations of HighU
+survey <- survey %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU only",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+HighJ+LowJ",
+      explored_HighU & explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+HighJ+LowU",
+      explored_HighU & !explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+LowJ+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+All",
+      TRUE ~ "No category"
+    )
+  )
+
+exploration_counts <- survey %>%
+  group_by(exploration_category) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+highu_eight_combs <- ggplot(
+  exploration_counts, aes(x = exploration_category, y = count, fill = exploration_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flipped coordinates
+  labs(title = "Exploration Combinations Among HighU Explorers",
+       x = "Exploration Category",
+       y = "Number of Users") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+highu_eight_combs
+
+# Cross check by adding up - change explore multiple to other combinations
+
+# How many people did NOT look at HighU at all? ----
+
+survey <- survey %>%
+  mutate(
+    highU_interaction = purchased_ratings == "HighU",
+    explored_HighU = highU_interaction & (review == "Read" | detail == "Read")
+  )
+
+user_exploration <- survey %>%
+  group_by(subject) %>%
+  summarise(did_not_explore_HighU = !any(explored_HighU))
+
+non_highu_explorers_count <- user_exploration %>%
+  filter(did_not_explore_HighU) %>%
+  summarise(count = n())
+
+non_highu_explorers_count
+
+# What did they buy?
+did_not_explore_HighU <- survey %>%
+  group_by(subject) %>%
+  summarise(did_not_explore_HighU = all(!(review == "Read" | detail == "Read") | purchased_ratings != "HighU")) %>%
+  ungroup()
+
+purchases_non_highu_explorers <- survey %>%
+  inner_join(did_not_explore_HighU, by = "subject") %>%
+  filter(did_not_explore_HighU) %>%
+  filter(purchase == 1) %>%
+  distinct(subject, purchased_ratings)
+
+# Aggregate data for non-HighU explorers
+purchase_non_highu_agg <- purchases_non_highu_explorers %>%
+  group_by(purchased_ratings) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+ggplot(purchase_non_highu_agg, aes(x = purchased_ratings, y = count, fill = purchased_ratings)) +
+  geom_bar(stat = "identity") +
+  labs(
+       x = "Purchased App Type",
+       y = "Number of Users") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# How many of the people in the 8 combinations of HighU actually purchased HighU?
+survey <- survey %>%
+  mutate(
+    explored_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
+    explored_HighJ = (review == "Read" | detail == "Read") & purchased_ratings == "HighJ",
+    explored_LowJ = (review == "Read" | detail == "Read") & purchased_ratings == "LowJ",
+    explored_LowU = (review == "Read" | detail == "Read") & purchased_ratings == "LowU"
+  )
+
+subject_exploration <- survey %>%
+  group_by(subject) %>%
+  mutate(
+    purchased_HighU = purchased_ratings == "HighU" & purchase == 1
+  ) %>%
+  summarise(
+    purchased_HighU = max(purchased_HighU),
+    explored_HighU = max(explored_HighU),
+    explored_HighJ = max(explored_HighJ),
+    explored_LowJ = max(explored_LowJ),
+    explored_LowU = max(explored_LowU),
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU only",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+HighJ+LowJ",
+      explored_HighU & explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+HighJ+LowU",
+      explored_HighU & !explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+LowJ+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+All"
+    )
+  ) %>%
+  ungroup()
+
+purchase_by_group <- subject_exploration %>%
+  group_by(exploration_category) %>%
+  summarise(
+    Total = n(),
+    Purchased_HighU = sum(purchased_HighU)
+  ) %>%
+  ungroup()
+
+ggplot(purchase_by_group, aes(x = exploration_category, y = Purchased_HighU, fill = exploration_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "HighU Purchases within Exploration Categories",
+       x = "Exploration Category",
+       y = "Number of HighU Purchases") +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Final Plots: ----
+
+# (Works) What did non-HighU explorers buy? ----
+survey <- survey %>%
+  mutate(
+    highU_interaction = purchased_ratings == "HighU",
+    explored_HighU = highU_interaction & (review == "Read" | detail == "Read")
+  )
+
+user_exploration <- survey %>%
+  group_by(subject) %>%
+  summarise(did_not_explore_HighU = !any(explored_HighU))
+
+non_highu_explorers_count <- user_exploration %>%
+  filter(did_not_explore_HighU) %>%
+  summarise(count = n())
+
+non_highu_explorers_count
+
+# What did they buy?
+did_not_explore_HighU <- survey %>%
+  group_by(subject) %>%
+  summarise(did_not_explore_HighU = all(!(review == "Read" | detail == "Read") | purchased_ratings != "HighU")) %>%
+  ungroup()
+
+purchases_non_highu_explorers <- survey %>%
+  inner_join(did_not_explore_HighU, by = "subject") %>%
+  filter(did_not_explore_HighU) %>%
+  filter(purchase == 1) %>%
+  distinct(subject, purchased_ratings)
+
+# Aggregate data for non-HighU explorers
+purchase_non_highu_agg <- purchases_non_highu_explorers %>%
+  group_by(purchased_ratings) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+ggplot(purchase_non_highu_agg, aes(x = purchased_ratings, y = count, fill = purchased_ratings)) +
+  geom_bar(stat = "identity") +
+  labs(
+    x = "Purchased App Type",
+    y = "Number of Users") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# (Works) Exploration patterns of HighU & HighJ Purchasers ----
+survey <- survey %>%
+  mutate(
+    pp_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
+    pp_HighJ = (review == "Read" | detail == "Read") & purchased_ratings == "HighJ",
+    pp_LowJ = (review == "Read" | detail == "Read") & purchased_ratings == "LowJ",
+    pp_LowU = (review == "Read" | detail == "Read") & purchased_ratings == "LowU"
+  )
+
+aggregated_explorations <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    purchase_type = first(purchased_ratings[purchase == 1]),
+    explored_HighU = max(pp_HighU),
+    explored_HighJ = max(pp_HighJ),
+    explored_LowJ = max(pp_LowJ),
+    explored_LowU = max(pp_LowU)
+  ) %>%
+  filter(purchase_type %in% c("HighU", "HighJ")) %>%
+  ungroup()
+
+aggregated_explorations <- aggregated_explorations %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "Only HighU",
+      !explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "Only HighJ",
+      explored_HighU & explored_HighJ ~ "HighU+HighJ",
+      TRUE ~ "Explored Multiple"
+    )
+  )
+
+ggplot(aggregated_explorations, aes(x = purchase_type, fill = exploration_category)) +
+  geom_bar(position = "dodge") +
+  labs(
+       x = "Purchase Type",
+       y = "Count of Users",
+       fill = "Exploration Category") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# (Works) Interaction plot ----
+
+surveysub_clean <- surveysub %>%
+  filter(!is.na(highju))
+
+# Calculate means and standard deviations for each group
+grouped_stats <- surveysub_clean %>%
+  group_by(regulatory_focus, highU_explored) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SD = sd(highju, na.rm = TRUE),
+    SE = SD / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup()
+
+# Add a column for the upper and lower bounds of the error bars (mean +/- 1.96*SE for 95% CI)
+grouped_stats <- grouped_stats %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+avg_purch_highu_plot <- ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_Purchase, fill = highU_explored)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    position = position_dodge(width = 0.7), 
+    width = 0.2
+  ) +
+  scale_fill_brewer(palette="Set1", labels = c("Not Explored" = "FALSE", "Explored" = "TRUE")) +  # ColorBrewer palette
+  labs(y = "Avg: Purchase (HighU 0/1)", x = "Regulatory Focus (RF)", fill = "HighU Explored") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+avg_purch_highu_plot
+
+
+# (Works) All 8 Combinations of HighU Explorations----
+# Define exploration flags
+survey <- survey %>%
+  mutate(
+    explored_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
+    explored_HighJ = (review == "Read" | detail == "Read") & purchased_ratings == "HighJ",
+    explored_LowJ = (review == "Read" | detail == "Read") & purchased_ratings == "LowJ",
+    explored_LowU = (review == "Read" | detail == "Read") & purchased_ratings == "LowU"
+  )
+
+# Aggregate at the subject level and categorize exploration
+subject_exploration <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    explored_HighU = max(explored_HighU),
+    explored_HighJ = max(explored_HighJ),
+    explored_LowJ = max(explored_LowJ),
+    explored_LowU = max(explored_LowU)
+  ) %>%
+  mutate(
+    exploration_category = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU only",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+HighJ+LowJ",
+      explored_HighU & explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+HighJ+LowU",
+      explored_HighU & !explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+LowJ+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+All",
+      TRUE ~ "Other"
+    )
+  )
+
+# Count the number of subjects in each exploration category
+exploration_counts <- subject_exploration %>%
+  group_by(exploration_category) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+# Visualize the counts of each exploration category
+highu_exploration_plot <- ggplot(exploration_counts, aes(x = exploration_category, y = count, fill = exploration_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+       x = "Exploration Category",
+       y = "Number of Subjects") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+highu_exploration_plot
+
+# (Works) All 7 Combinations of HighU Explorations ----
+# Define exploration flags
+subject_exploration_no_other <- survey_explore %>%
+  group_by(subject) %>%
+  summarise(
+    explored_HighU = max(explored_HighU),
+    explored_HighJ = max(explored_HighJ),
+    explored_LowJ = max(explored_LowJ),
+    explored_LowU = max(explored_LowU)
+  ) %>%
+  mutate(
+    exploration_category_no_other = case_when(
+      explored_HighU & !explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU only",
+      explored_HighU & explored_HighJ & !explored_LowJ & !explored_LowU ~ "HighU+HighJ",
+      explored_HighU & !explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+LowJ",
+      explored_HighU & !explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & !explored_LowU ~ "HighU+HighJ+LowJ",
+      explored_HighU & explored_HighJ & !explored_LowJ & explored_LowU ~ "HighU+HighJ+LowU",
+      explored_HighU & !explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+LowJ+LowU",
+      explored_HighU & explored_HighJ & explored_LowJ & explored_LowU ~ "HighU+All"
+    )
+  ) %>%
+  filter(!is.na(exploration_category_no_other))  # Exclude NA categories
+
+exploration_counts_no_other <- subject_exploration_no_other %>%
+  group_by(exploration_category_no_other) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+highu_exploration_plot_no_other <- ggplot(exploration_counts_no_other, aes(x = exploration_category_no_other, y = count, fill = exploration_category_no_other)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+       x = "Exploration Category",
+       y = "Number of Subjects") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+highu_exploration_plot_no_other
+
+
+
+
+
+# Step 1: Create exploration flags for each app type without modifying the original dataset
+exploration_data <- survey %>%
+  mutate(
+    explored_HighU = ifelse((review == "Read" | detail == "Read") & purchased_ratings == "HighU", 1, 0),
+    explored_HighJ = ifelse((review == "Read" | detail == "Read") & purchased_ratings == "HighJ", 1, 0),
+    explored_LowJ = ifelse((review == "Read" | detail == "Read") & purchased_ratings == "LowJ", 1, 0),
+    explored_LowU = ifelse((review == "Read" | detail == "Read") & purchased_ratings == "LowU", 1, 0)
+  )
+
+# Step 2: Aggregate exploration data at the subject level
+subject_exploration <- exploration_data %>%
+  group_by(subject, regulatory_focus) %>%
+  summarise(
+    explored_HighU = max(explored_HighU),
+    explored_HighJ = max(explored_HighJ),
+    explored_LowJ = max(explored_LowJ),
+    explored_LowU = max(explored_LowU)
+  ) %>%
+  ungroup()
+
+# Step 3: Verify the number of unique subjects and exploration flags
+unique_subjects <- subject_exploration %>%
+  summarise(
+    num_subjects = n_distinct(subject),
+    total_explored_HighU = sum(explored_HighU),
+    total_explored_HighJ = sum(explored_HighJ),
+    total_explored_LowJ = sum(explored_LowJ),
+    total_explored_LowU = sum(explored_LowU)
+  )
+
+# Print the number of unique subjects and exploration flags
+print(unique_subjects)
+
+# Step 4: Summarize counts by regulatory focus and app type
+exploration_agg <- subject_exploration %>%
+  pivot_longer(cols = starts_with("explored_"), names_to = "App_Type", values_to = "Explored") %>%
+  group_by(regulatory_focus, App_Type) %>%
+  summarise(Count = sum(Explored)) %>%
+  ungroup()
+
+# Print the aggregated data to verify
+print(exploration_agg)
+
+# Step 5: Plot the data
+ggplot(exploration_agg, aes(x = App_Type, y = Count, fill = App_Type)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  facet_wrap(~ regulatory_focus, nrow = 1) +
+  labs(
+    x = "",
+    y = "# of people Explored",
+    fill = "App Type"
+  ) +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold"),
+    axis.title.y = element_text(size = 12),
+    axis.title.x = element_text(size = 12)
+  )
 
 
 

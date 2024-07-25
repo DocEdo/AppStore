@@ -301,11 +301,11 @@ all(surveysub$why == join_survey$why)
 all(surveysub$regulatory_focus == join_survey$regulatory_focus)
 
 surveysub$regulatory_focus <-
-  relevel(factor(surveysub$regulatory_focus), ref = "Prevention")
+  relevel(factor(surveysub$regulatory_focus), ref = "Promotion")
 
 
 
-# Extract highU and highJ exploration for each subject ----
+# Extract highU, highJ, lowU, and lowJ exploration for each subject ----
 allHighU <- survey[survey$purchased_ratings == "HighU", ]
 highU_explored <- (allHighU$review == "Read") | (allHighU$detail == "Read")
 
@@ -314,6 +314,15 @@ highJ_explored <- (allHighJ$review == "Read") | (allHighJ$detail == "Read")
 
 surveysub$highU_explored <- factor(highU_explored)
 surveysub$highJ_explored <- factor(highJ_explored)
+
+allLowU <- survey[survey$purchased_ratings == "LowU", ]
+lowU_explored <- (allLowU$review == "Read") | (allLowU$detail == "Read")
+
+allLowJ <- survey[survey$purchased_ratings == "LowJ", ]
+lowJ_explored <- (allLowJ$review == "Read") | (allLowJ$detail == "Read")
+
+surveysub$lowU_explored <- factor(lowU_explored)
+surveysub$lowJ_explored <- factor(lowJ_explored)
 
 
 # HighU variables ----
@@ -329,8 +338,18 @@ surveysub$highju <- ifelse(surveysub$purchased_ratings == "HighU", 1,
 # Recoding purchased_ratings to a binary of HighU vs the rest in surveysub
 surveysub$highu_rest <- as.numeric(surveysub$purchased_ratings == "HighU")
 
+# Recoding purchased_ratings to a binary of HighJ vs the rest in surveysub
+surveysub$highj_rest <- as.numeric(surveysub$purchased_ratings == "HighJ")
+
+# Recoding purchased_ratings to a binary of LowJ vs the rest in surveysub
+surveysub$lowj_rest <- as.numeric(surveysub$purchased_ratings == "LowJ")
+
+# Recoding purchased_ratings to a binary of LowU vs the rest in surveysub
+surveysub$lowu_rest <- as.numeric(surveysub$purchased_ratings == "LowU")
+
 # Recoding purchased_ratings to a binary of HighU vs the rest in survey
 survey$highu_rest <- as.numeric(survey$purchased_ratings == "HighU")
 
 # Filtering out NA values (LowJ and LowU)
 survey_filtered <- survey %>% filter(!is.na(highju))
+
