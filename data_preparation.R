@@ -23,7 +23,7 @@ surveysub <- subset(purchases, select = c(
   regulatory_focus, platform_preference,
   visit_frequency, app_expense, previous_experience,
   gender, income, involvement, age, visit_mean,
-  directlyPurchase, review, detail, apporder, appname, numRating)
+  directlyPurchase, review, detail, apporder, appname, numRating, choiceset)
 )
 
 # Create a new column: purchased_ratings

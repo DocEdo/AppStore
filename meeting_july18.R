@@ -1,4 +1,7 @@
 source("data_preparation.R")
+library(tidyverse)
+library(broom)
+library(openxlsx)
 
 # Visualizations ----
 
