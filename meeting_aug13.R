@@ -4,7 +4,7 @@ library(readxl)
 library(tidyverse)
 library(openxlsx)
 
-
+# AUGUST 13 MEETING:
 # According to Aizaki and Nishimura - How to create choice sets: ----
 # 5 setps using R:
 
@@ -95,6 +95,9 @@ view(surveysub_merged[, c("subject", "apporder", "app", "adjusted_choiceset", "r
 view(survey[, c("subject", "apporder", "appname", "choiceset", "purchased_ratings")])
 
 # Previous approach won't work because Choice sets are structured differently from the actual dataset
+
+
+# AUGUST 17 MEETING:
 
 # Categorical variables for App Name (recode) and App Position ----
 
@@ -266,6 +269,214 @@ purchase_lowj_apps$statistic <- round(purchase_lowj_apps$statistic, 3)
 purchase_lowj_apps$p.value <- round(purchase_lowj_apps$p.value, 3)
 
 write.xlsx(purchase_lowj_apps, file = "temporary_files/lowj_apps.xlsx")
+
+# AUGUST 20 MEETING
+
+# New columns based on the existing exploration ----
+surveysub$highUexplore_appname <- as.factor(ifelse(surveysub$highU_explored == TRUE, 
+                                                   as.character(surveysub$appname_purchased), NA))
+surveysub$highJexplore_appname <- as.factor(ifelse(surveysub$highJ_explored == TRUE, 
+                                                   as.character(surveysub$appname_purchased), NA))
+surveysub$lowUexplore_appname  <- as.factor(ifelse(surveysub$lowU_explored == TRUE, 
+                                                   as.character(surveysub$appname_purchased), NA))
+surveysub$lowJexplore_appname  <- as.factor(ifelse(surveysub$lowJ_explored == TRUE, 
+                                                   as.character(surveysub$appname_purchased), NA))
+
+surveysub$highUexplore_appname <- as.factor(surveysub$highUexplore_appname)
+surveysub$highJexplore_appname <- as.factor(surveysub$highJexplore_appname)
+surveysub$lowUexplore_appname  <- as.factor(surveysub$lowUexplore_appname)
+surveysub$lowJexplore_appname  <- as.factor(surveysub$lowJexplore_appname)
+
+table(surveysub$highUexplore_appname)
+unique(surveysub$highUexplore_appname)
+surveysub
+
+sapply(surveysub, function(x) sum(is.na(x)))
+
+# Other approaches?
+
+# Recode appname to appname_purchased
+survey$appname_purchased <- recode(survey$appname,
+                                      `1` = "JogStats",
+                                      `2` = "Map My Walk",
+                                      `3` = "FITAPP",
+                                      `4` = "Running Watch")
+
+survey$appname_purchased <- as.factor(survey$appname_purchased)
+unique(survey$appname_purchased)
+
+# +GPT help with function:
+surveysub_new <- surveysub
+
+# New columns in surveysub_new
+surveysub_new$highUexplore_appname <- NA
+surveysub_new$highJexplore_appname <- NA
+surveysub_new$lowUexplore_appname <- NA
+surveysub_new$lowJexplore_appname <- NA
+
+# Loop through each subject in surveysub_new
+for (i in 1:nrow(surveysub_new)) {
+  subject_id <- surveysub_new$subject[i]
+  purchased_app <- as.character(surveysub_new$appname_purchased[i])  # Convert to character
+  
+  # Extract all rows for this subject from the original survey dataset
+  subject_data <- survey[survey$subject == subject_id, ]
+  
+  # Check for HighU exploration
+  highU_row <- subject_data[subject_data$purchased_ratings == "HighU" & (subject_data$review == "Read" | subject_data$detail == "Read"), ]
+  if (nrow(highU_row) > 0 && purchased_app %in% as.character(highU_row$appname_purchased)) {
+    surveysub_new$highUexplore_appname[i] <- purchased_app
+  }
+  
+  # Check for HighJ exploration
+  highJ_row <- subject_data[subject_data$purchased_ratings == "HighJ" & (subject_data$review == "Read" | subject_data$detail == "Read"), ]
+  if (nrow(highJ_row) > 0 && purchased_app %in% as.character(highJ_row$appname_purchased)) {
+    surveysub_new$highJexplore_appname[i] <- purchased_app
+  }
+  
+  # Check for LowU exploration
+  lowU_row <- subject_data[subject_data$purchased_ratings == "LowU" & (subject_data$review == "Read" | subject_data$detail == "Read"), ]
+  if (nrow(lowU_row) > 0 && purchased_app %in% as.character(lowU_row$appname_purchased)) {
+    surveysub_new$lowUexplore_appname[i] <- purchased_app
+  }
+  
+  # Check for LowJ exploration
+  lowJ_row <- subject_data[subject_data$purchased_ratings == "LowJ" & (subject_data$review == "Read" | subject_data$detail == "Read"), ]
+  if (nrow(lowJ_row) > 0 && purchased_app %in% as.character(lowJ_row$appname_purchased)) {
+    surveysub_new$lowJexplore_appname[i] <- purchased_app
+  }
+}
+
+surveysub_new$highUexplore_appname <- as.factor(surveysub_new$highUexplore_appname)
+surveysub_new$highJexplore_appname <- as.factor(surveysub_new$highJexplore_appname)
+surveysub_new$lowUexplore_appname <- as.factor(surveysub_new$lowUexplore_appname)
+surveysub_new$lowJexplore_appname <- as.factor(surveysub_new$lowJexplore_appname)
+
+surveysub_new
+
+# Exploration models with Explored App Name ----
+# Tables of all Explore behavior logits with AppName
+
+# explored_highu_apps <- glm(highU_explored ~ 
+#                         age + 
+#                         gender + 
+#                         income + 
+#                         visit_frequency + 
+#                         app_expense + 
+#                         previous_experience + 
+#                         regulatory_focus + 
+#                         platform_preference + 
+#                         involvement +
+#                           apporder +
+#                           highUexplore_appname,
+#                       family = binomial,
+#                       data = surveysub)
+# 
+# summary(explored_highu_apps)
+# 
+# explored_highu_apps <- tidy(explored_highs_apps)
+# 
+# explored_highu_apps$estimate <- round(explored_highu_apps$estimate, 3)
+# explored_highu_apps$std.error <- round(explored_highu_apps$std.error, 3)
+# explored_highu_apps$statistic <- round(explored_highu_apps$statistic, 3)
+# explored_highu_apps$p.value <- round(explored_highu_apps$p.value, 3)
+# 
+# write.xlsx(explored_highu_apps, file = "temporary_files/explored_highu.xlsx")
+# 
+# explored_highj_apps <- glm(highJ_explored ~ 
+#                         age + 
+#                         gender + 
+#                         income + 
+#                         visit_frequency + 
+#                         app_expense + 
+#                         previous_experience + 
+#                         regulatory_focus + 
+#                         platform_preference + 
+#                         involvement +
+#                         apporder +
+#                         highJexplore_appname,
+#                       family = binomial,
+#                       data = surveysub)
+# 
+# summary(explored_highj_apps)
+# 
+# explored_highj_apps <- tidy(explored_highj_apps)
+# 
+# explored_highj_apps$estimate <- round(explored_highj_apps$estimate, 3)
+# explored_highj_apps$std.error <- round(explored_highj_apps$std.error, 3)
+# explored_highj_apps$statistic <- round(explored_highj_apps$statistic, 3)
+# explored_highj_apps$p.value <- round(explored_highj_apps$p.value, 3)
+# 
+# write.xlsx(explored_highj_apps, file = "temporary_files/explored_highj.xlsx")
+# 
+# explored_lowu_apps <- glm(lowU_explored ~ 
+#                        age + 
+#                        gender + 
+#                        income + 
+#                        visit_frequency + 
+#                        app_expense + 
+#                        previous_experience + 
+#                        regulatory_focus + 
+#                        platform_preference + 
+#                        involvement +
+#                         apporder +
+#                         lowUexplore_appname,
+#                      family = binomial,
+#                      data = surveysub)
+# 
+# summary(explored_lowu_apps)
+# 
+# explored_lowu_apps <- tidy(explored_lowu_apps)
+# 
+# explored_lowu_apps$estimate <- round(explored_lowu_apps$estimate, 3)
+# explored_lowu_apps$std.error <- round(explored_lowu_apps$std.error, 3)
+# explored_lowu_apps$statistic <- round(explored_lowu_apps$statistic, 3)
+# explored_lowu_apps$p.value <- round(explored_lowu_apps$p.value, 3)
+# 
+# write.xlsx(explored_lowu_apps, file = "temporary_files/explored_lowu.xlsx")
+# 
+# explored_lowj_apps <- glm(lowJ_explored ~ 
+#                        age + 
+#                        gender + 
+#                        income + 
+#                        visit_frequency + 
+#                        app_expense + 
+#                        previous_experience + 
+#                        regulatory_focus + 
+#                        platform_preference + 
+#                        involvement +
+#                          apporder +
+#                          lowJexplore_appname,
+#                      family = binomial,
+#                      data = surveysub)
+# 
+# summary(explored_lowj_apps)
+# 
+# explored_lowj_apps <- tidy(explored_lowj_apps)
+# 
+# explored_lowj_apps$estimate <- round(explored_lowj_apps$estimate, 3)
+# explored_lowj_apps$std.error <- round(explored_lowj_apps$std.error, 3)
+# explored_lowj_apps$statistic <- round(explored_lowj_apps$statistic, 3)
+# explored_lowj_apps$p.value <- round(explored_lowj_apps$p.value, 3)
+# 
+# write.xlsx(explored_lowj_apps, file = "temporary_files/explored_lowj.xlsx")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
