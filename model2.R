@@ -133,10 +133,11 @@ summary_model2 <- summary(model_2out)
 coefs <- as.data.frame(summary_model2$coefficients)
 stderrs <- as.data.frame(summary_model2$standard.errors)
 
-# Combine and save to CSV
+# Fail: Combine and save to CSV
 output_nnet <- cbind(coefs, stderrs)
 colnames(output_nnet) <- c("Coefficient", "StandardError")
-write.csv(output_nnet, "model2_summary.csv", row.names = TRUE)
+write.csv(output_nnet, "temporary_files/model2_summary.csv", row.names = TRUE)
+
 
 
 

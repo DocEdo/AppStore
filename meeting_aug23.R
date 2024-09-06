@@ -183,8 +183,6 @@ survey$appnames <- factor(recode(survey$appname,
                                  `3` = "FITAPP",
                                  `4` = "Running Watch"))
 
-# surveysub$appnames <- as.factor(survey$appnames)
-
 surveysub$highU_appname = factor(survey[survey$purchased_ratings == "HighU", "appnames"])
 surveysub$highJ_appname = factor(survey[survey$purchased_ratings == "HighJ", "appnames"])
 surveysub$lowU_appname = factor(survey[survey$purchased_ratings == "LowU", "appnames"])
