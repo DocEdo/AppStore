@@ -353,3 +353,8 @@ survey$highu_rest <- as.numeric(survey$purchased_ratings == "HighU")
 # Filtering out NA values (LowJ and LowU)
 survey_filtered <- survey %>% filter(!is.na(highju))
 
+# Recoding purchased_ratings to a binary variable (LowU vs LowJ)
+surveysub$lowju <- ifelse(surveysub$purchased_ratings == "LowU", 1, 
+                           ifelse(surveysub$purchased_ratings == "LowJ", 0, NA))
+
+

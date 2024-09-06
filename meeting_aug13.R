@@ -357,23 +357,23 @@ surveysub_new
 # Exploration models with Explored App Name ----
 # Tables of all Explore behavior logits with AppName
 
-# explored_highu_apps <- glm(highU_explored ~ 
-#                         age + 
-#                         gender + 
-#                         income + 
-#                         visit_frequency + 
-#                         app_expense + 
-#                         previous_experience + 
-#                         regulatory_focus + 
-#                         platform_preference + 
-#                         involvement +
-#                           apporder +
-#                           highUexplore_appname,
-#                       family = binomial,
-#                       data = surveysub)
-# 
-# summary(explored_highu_apps)
-# 
+explored_highu_apps <- glm(highU_explored ~
+                        age +
+                        gender +
+                        income +
+                        visit_frequency +
+                        app_expense +
+                        previous_experience +
+                        regulatory_focus +
+                        platform_preference +
+                        involvement +
+                        factor(highU_apporder) +
+                        factor(highU_appname),
+                      family = binomial,
+                      data = surveysub)
+
+summary(explored_highu_apps)
+
 # explored_highu_apps <- tidy(explored_highs_apps)
 # 
 # explored_highu_apps$estimate <- round(explored_highu_apps$estimate, 3)
@@ -383,22 +383,22 @@ surveysub_new
 # 
 # write.xlsx(explored_highu_apps, file = "temporary_files/explored_highu.xlsx")
 # 
-# explored_highj_apps <- glm(highJ_explored ~ 
-#                         age + 
-#                         gender + 
-#                         income + 
-#                         visit_frequency + 
-#                         app_expense + 
-#                         previous_experience + 
-#                         regulatory_focus + 
-#                         platform_preference + 
-#                         involvement +
-#                         apporder +
-#                         highJexplore_appname,
-#                       family = binomial,
-#                       data = surveysub)
-# 
-# summary(explored_highj_apps)
+explored_highj_apps <- glm(highJ_explored ~
+                        age +
+                        gender +
+                        income +
+                        visit_frequency +
+                        app_expense +
+                        previous_experience +
+                        regulatory_focus +
+                        platform_preference +
+                        involvement +
+                        factor(highJ_apporder) +
+                        factor(highJ_appname),
+                      family = binomial,
+                      data = surveysub)
+
+summary(explored_highj_apps)
 # 
 # explored_highj_apps <- tidy(explored_highj_apps)
 # 
@@ -409,22 +409,22 @@ surveysub_new
 # 
 # write.xlsx(explored_highj_apps, file = "temporary_files/explored_highj.xlsx")
 # 
-# explored_lowu_apps <- glm(lowU_explored ~ 
-#                        age + 
-#                        gender + 
-#                        income + 
-#                        visit_frequency + 
-#                        app_expense + 
-#                        previous_experience + 
-#                        regulatory_focus + 
-#                        platform_preference + 
-#                        involvement +
-#                         apporder +
-#                         lowUexplore_appname,
-#                      family = binomial,
-#                      data = surveysub)
-# 
-# summary(explored_lowu_apps)
+explored_lowu_apps <- glm(lowU_explored ~
+                       age +
+                       gender +
+                       income +
+                       visit_frequency +
+                       app_expense +
+                       previous_experience +
+                       regulatory_focus +
+                       platform_preference +
+                       involvement +
+                        factor(lowU_apporder) +
+                        factor(lowU_appname),
+                     family = binomial,
+                     data = surveysub)
+
+summary(explored_lowu_apps)
 # 
 # explored_lowu_apps <- tidy(explored_lowu_apps)
 # 
@@ -435,22 +435,22 @@ surveysub_new
 # 
 # write.xlsx(explored_lowu_apps, file = "temporary_files/explored_lowu.xlsx")
 # 
-# explored_lowj_apps <- glm(lowJ_explored ~ 
-#                        age + 
-#                        gender + 
-#                        income + 
-#                        visit_frequency + 
-#                        app_expense + 
-#                        previous_experience + 
-#                        regulatory_focus + 
-#                        platform_preference + 
-#                        involvement +
-#                          apporder +
-#                          lowJexplore_appname,
-#                      family = binomial,
-#                      data = surveysub)
-# 
-# summary(explored_lowj_apps)
+explored_lowj_apps <- glm(lowJ_explored ~
+                       age +
+                       gender +
+                       income +
+                       visit_frequency +
+                       app_expense +
+                       previous_experience +
+                       regulatory_focus +
+                       platform_preference +
+                       involvement +
+                         factor(lowJ_apporder) +
+                         factor(lowJ_appname),
+                     family = binomial,
+                     data = surveysub)
+
+summary(explored_lowj_apps)
 # 
 # explored_lowj_apps <- tidy(explored_lowj_apps)
 # 
@@ -461,16 +461,24 @@ surveysub_new
 # 
 # write.xlsx(explored_lowj_apps, file = "temporary_files/explored_lowj.xlsx")
 
+survey$appnames <- factor(recode(survey$appname,
+                                   `1` = "JogStats",
+                                   `2` = "Map My Walk",
+                                   `3` = "FITAPP",
+                                   `4` = "Running Watch"))
+
+surveysub$highU_appname = factor(survey[survey$purchased_ratings == "HighU", "appname"])
+surveysub$highJ_appname = factor(survey[survey$purchased_ratings == "HighJ", "appname"])
+surveysub$lowU_appname = factor(survey[survey$purchased_ratings == "LowU", "appname"])
+surveysub$lowJ_appname = factor(survey[survey$purchased_ratings == "HighJ", "appname"])
+
+surveysub$apporder <- factor(surveysub$apporder)
 
 
-
-
-
-
-
-
-
-
+surveysub$highU_apporder = factor(survey[survey$purchased_ratings == "HighU", "apporder"])
+surveysub$highJ_apporder = factor(survey[survey$purchased_ratings == "HighJ", "apporder"])
+surveysub$lowU_apporder = factor(survey[survey$purchased_ratings == "LowU", "apporder"])
+surveysub$lowJ_apporder = factor(survey[survey$purchased_ratings == "HighJ", "apporder"])
 
 
 
