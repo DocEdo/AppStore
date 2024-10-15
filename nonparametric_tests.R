@@ -2,9 +2,6 @@
 source("data_preparation.R")
 library("tidyverse")
 
-library(ggplot2)
-library(dplyr)
-
 # Read -> numeric
 surveysub$explore_num <- ifelse(surveysub$read == "TRUE", 1, 0)
 

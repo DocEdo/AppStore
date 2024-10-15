@@ -1,6 +1,6 @@
 # meeting_july30
-
 source("data_preparation.R")
+library("ggvenn")
 
 
 # All explorations for each subject

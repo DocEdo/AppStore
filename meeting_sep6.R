@@ -32,9 +32,7 @@ exp_highs_none <- multinom(Explored ~
                              previous_experience +
                              regulatory_focus +
                              platform_preference +
-                             involvement +
-                             factor(highU_apporder) +
-                             factor(highU_appname),
+                             involvement,
                            data = surveysub)
 
 summary(exp_highs_none)

@@ -1045,7 +1045,6 @@ highu_exploration_plot <- ggplot(exploration_counts, aes(x = exploration_categor
 highu_exploration_plot
 
 # (Works) All 7 Combinations of HighU Explorations ----
-# Define exploration flags
 subject_exploration_no_other <- survey_explore %>%
   group_by(subject) %>%
   summarise(
@@ -1084,9 +1083,6 @@ highu_exploration_plot_no_other <- ggplot(exploration_counts_no_other, aes(x = e
   theme(legend.position = "bottom")
 
 highu_exploration_plot_no_other
-
-
-
 
 
 # Step 1: Create exploration flags for each app type without modifying the original dataset
