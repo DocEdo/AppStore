@@ -5,6 +5,7 @@ source("meeting_models.R")
 library("tidyverse")
 library("tidytext")
 library("vcd")
+library("ggvenn")
 
 # Visit frequency visualization ----
 
@@ -1150,4 +1151,61 @@ ggplot(exploration_agg, aes(x = App_Type, y = Count, fill = App_Type)) +
 
 
 
+
+
+
+
+
+
+
+
+
+# Venn of Explorations ----
+
+# Exploration Venn Diagram for DIGIT Submission
+
+# All explorations for each subject
+survey_sum <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    highU_explored = any(purchased_ratings == "HighU" & (review == "Read" | detail == "Read")),
+    highJ_explored = any(purchased_ratings == "HighJ" & (review == "Read" | detail == "Read")),
+    lowU_explored = any(purchased_ratings == "LowU" & (review == "Read" | detail == "Read")),
+    lowJ_explored = any(purchased_ratings == "LowJ" & (review == "Read" | detail == "Read"))
+  )
+
+# Data for venn
+venn_data <- list(
+  HighU = survey_sum$subject[survey_sum$highU_explored == TRUE],
+  HighJ = survey_sum$subject[survey_sum$highJ_explored == TRUE],
+  LowU = survey_sum$subject[survey_sum$lowU_explored == TRUE],
+  LowJ = survey_sum$subject[survey_sum$lowJ_explored == TRUE]
+)
+
+# Check vector length
+length_highU <- length(venn_data$HighU)
+length_highJ <- length(venn_data$HighJ)
+length_lowU <- length(venn_data$LowU)
+length_lowJ <- length(venn_data$LowJ)
+
+c(HighU = length_highU, HighJ = length_highJ, LowU = length_lowU, LowJ = length_lowJ)
+
+# Count unique subjects in the Venn diagram
+total_unique_subjects_venn <- length(unique(c(venn_data$HighU, venn_data$HighJ, venn_data$LowU, venn_data$LowJ)))
+
+total_unique_subjects_venn
+
+# venn_plot<- ggvenn(venn_data, 
+#                    fill_color = c("red", "blue", "green", "purple"), 
+#                    text_size = 4.2)
+
+venn_plot <- ggvenn(
+  venn_data,
+  fill_color = c("gray90", "gray70", "gray50", "gray30"), # Shades of gray
+  text_size = 4.2
+)
+
+venn_plot
+
+ggsave("temporary_files/Explore_Venn.jpg", plot = venn_plot, dpi = 300)
 

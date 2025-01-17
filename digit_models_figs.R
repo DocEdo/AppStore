@@ -363,11 +363,6 @@ explored_highj_apps$p.value <- round(explored_highj_apps$p.value, 2)
 
 write.xlsx(explored_highj_apps, file = "digit/explored_highj.xlsx")
 
-
-
-
-
-
 # Visualization of Interaction Plot with Average purchase ----
 
 surveysub_clean3 <- surveysub %>%
