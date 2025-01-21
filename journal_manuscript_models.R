@@ -1065,6 +1065,233 @@ purchase_highj_exp$p.value <- round(purchase_highj_exp$p.value, 2)
 write.xlsx(purchase_highj_exp, file = "temporary_files/logit_highj_exp.xlsx")
 
 
+# Buy Models with Promotion instead ----
+
+# RegFocus base term
+surveysub$reg_focus_dummy2 <- ifelse(surveysub$regulatory_focus == "Promotion", 1, 0)
+surveysub$reg_focus_dummy2
+
+# Base: RF_Only
+# HighU
+purchase_highu_prom <- glm(highu_rest ~
+                             reg_focus_dummy2 +
+                             age + 
+                             gender + 
+                             income + 
+                             visit_frequency + 
+                             app_expense + 
+                             previous_experience + 
+                             platform_preference + 
+                             involvement + 
+                             appname_purchased + 
+                             apporder_purchased, 
+                           data = surveysub, 
+                           family = binomial)
+
+summary(purchase_highu_prom)
+
+# Summary into a data frame
+purchase_highu_prom <- tidy(purchase_highu_prom)
+
+# Round the numeric columns to two decimal places
+purchase_highu_prom$estimate <- round(purchase_highu_prom$estimate, 2)
+purchase_highu_prom$std.error <- round(purchase_highu_prom$std.error, 2)
+purchase_highu_prom$statistic <- round(purchase_highu_prom$statistic, 2)
+purchase_highu_prom$p.value <- round(purchase_highu_prom$p.value, 2)
+
+write.xlsx(purchase_highu_prom, file = "temporary_files/logit_highu_prom.xlsx")
+
+# HighJ
+purchase_highj_prom <- glm(highj_rest ~
+                             reg_focus_dummy2 +
+                             age + 
+                             gender + 
+                             income + 
+                             visit_frequency + 
+                             app_expense + 
+                             previous_experience + 
+                             platform_preference + 
+                             involvement + 
+                             appname_purchased + 
+                             apporder_purchased, 
+                           data = surveysub, 
+                           family = binomial)
+
+summary(purchase_highj_prom)
+
+# Summary into a data frame
+purchase_highj_prom <- tidy(purchase_highj_prom)
+
+# Round the numeric columns to two decimal places
+purchase_highj_prom$estimate <- round(purchase_highj_prom$estimate, 2)
+purchase_highj_prom$std.error <- round(purchase_highj_prom$std.error, 2)
+purchase_highj_prom$statistic <- round(purchase_highj_prom$statistic, 2)
+purchase_highj_prom$p.value <- round(purchase_highj_prom$p.value, 2)
+
+write.xlsx(purchase_highj_prom, file = "temporary_files/logit_highj_prom.xlsx")
+
+
+# Exp: RF_Only + Explorations
+
+# HighU Exploration
+purchase_highu_exp_prom <- glm(highu_rest ~
+                                 reg_focus_dummy2 +
+                                 expHighJ_only +
+                                 expHighU_only +
+                                 exp_both_high +
+                                 age + 
+                                 gender + 
+                                 income + 
+                                 visit_frequency + 
+                                 app_expense + 
+                                 previous_experience + 
+                                 platform_preference + 
+                                 involvement + 
+                                 appname_purchased + 
+                                 apporder_purchased, 
+                               data = surveysub, 
+                               family = binomial)
+
+summary(purchase_highu_exp_prom)
+
+# Summary into a data frame
+purchase_highu_exp_prom <- tidy(purchase_highu_exp_prom)
+
+# Round the numeric columns to two decimal places
+purchase_highu_exp_prom$estimate <- round(purchase_highu_exp_prom$estimate, 2)
+purchase_highu_exp_prom$std.error <- round(purchase_highu_exp_prom$std.error, 2)
+purchase_highu_exp_prom$statistic <- round(purchase_highu_exp_prom$statistic, 2)
+purchase_highu_exp_prom$p.value <- round(purchase_highu_exp_prom$p.value, 2)
+
+write.xlsx(purchase_highu_exp_prom, file = "temporary_files/logit_highu_exp_prom.xlsx")
+
+# HighJ Exploration
+purchase_highj_exp_prom <- glm(highj_rest ~
+                                 reg_focus_dummy2 +
+                                 expHighJ_only +
+                                 expHighU_only +
+                                 exp_both_high +
+                                 age + 
+                                 gender + 
+                                 income + 
+                                 visit_frequency + 
+                                 app_expense + 
+                                 previous_experience + 
+                                 platform_preference + 
+                                 involvement + 
+                                 appname_purchased + 
+                                 apporder_purchased, 
+                               data = surveysub, 
+                               family = binomial)
+
+summary(purchase_highj_exp_prom)
+
+# Summary into a data frame
+purchase_highj_exp_prom <- tidy(purchase_highj_exp_prom)
+
+# Round the numeric columns to two decimal places
+purchase_highj_exp_prom$estimate <- round(purchase_highj_exp_prom$estimate, 2)
+purchase_highj_exp_prom$std.error <- round(purchase_highj_exp_prom$std.error, 2)
+purchase_highj_exp_prom$statistic <- round(purchase_highj_exp_prom$statistic, 2)
+purchase_highj_exp_prom$p.value <- round(purchase_highj_exp_prom$p.value, 2)
+
+write.xlsx(purchase_highj_exp_prom, file = "temporary_files/logit_highj_exp_prom.xlsx")
+
+# Interaction terms using a dummy variable (every variable has to be numeric)
+surveysub$int_expHighJ_rf2 <- surveysub$expHighJ_only * surveysub$reg_focus_dummy2
+surveysub$int_expHighU_rf2 <- surveysub$expHighU_only * surveysub$reg_focus_dummy2
+surveysub$int_expBoth_rf2  <- surveysub$exp_both_high * surveysub$reg_focus_dummy2
+
+# Orthogonalize the interaction terms
+int_expHighJ_rf_reg2 <- lm(int_expHighJ_rf2 ~ expHighJ_only + reg_focus_dummy2, data = surveysub)
+surveysub$int_expHighJ_rf_orthogonal2 <- residuals(int_expHighJ_rf_reg2)
+
+int_expHighU_rf_reg2 <- lm(int_expHighU_rf2 ~ expHighU_only + reg_focus_dummy2, data = surveysub)
+surveysub$int_expHighU_rf_orthogonal2 <- residuals(int_expHighU_rf_reg2)
+
+int_expBoth_rf_reg2 <- lm(int_expBoth_rf2 ~ exp_both_high + reg_focus_dummy2, data = surveysub)
+surveysub$int_expBoth_rf_orthogonal2 <- residuals(int_expBoth_rf_reg2)
+
+# HighU
+highu_rest_orthogonal_prom <- glm(highu_rest ~
+                                    reg_focus_dummy2 +  # Use the single dummy variable
+                                    expHighJ_only +
+                                    expHighU_only +
+                                    exp_both_high +
+                                    int_expHighJ_rf_orthogonal2 +
+                                    int_expHighU_rf_orthogonal2 +
+                                    int_expBoth_rf_orthogonal2 +
+                                    age + 
+                                    gender + 
+                                    income + 
+                                    visit_frequency + 
+                                    app_expense + 
+                                    previous_experience + 
+                                    platform_preference + 
+                                    involvement + 
+                                    appname_purchased + 
+                                    apporder_purchased, 
+                                  data = surveysub, 
+                                  family = binomial)
+
+summary(highu_rest_orthogonal_prom)
+
+# Summary into a data frame
+purchase_highu_orthogonal_prom <- tidy(highu_rest_orthogonal_prom)
+
+# Round the numeric columns to three decimal places
+purchase_highu_orthogonal_prom$estimate <- round(purchase_highu_orthogonal_prom$estimate, 2)
+purchase_highu_orthogonal_prom$std.error <- round(purchase_highu_orthogonal_prom$std.error, 2)
+purchase_highu_orthogonal_prom$statistic <- round(purchase_highu_orthogonal_prom$statistic, 2)
+purchase_highu_orthogonal_prom$p.value <- round(purchase_highu_orthogonal_prom$p.value, 2)
+
+write.xlsx(purchase_highu_orthogonal_prom, file = "temporary_files/logit_highu_orthogonal_prom.xlsx")
+
+# HighJ
+highj_rest_orthogonal_prom <- glm(highj_rest ~
+                                    reg_focus_dummy2 +
+                                    expHighJ_only +
+                                    expHighU_only +
+                                    exp_both_high +
+                                    int_expHighJ_rf_orthogonal2 +
+                                    int_expHighU_rf_orthogonal2 +
+                                    int_expBoth_rf_orthogonal2 +
+                                    age + 
+                                    gender + 
+                                    income + 
+                                    visit_frequency + 
+                                    app_expense + 
+                                    previous_experience + 
+                                    platform_preference + 
+                                    involvement + 
+                                    appname_purchased + 
+                                    apporder_purchased, 
+                                  data = surveysub, 
+                                  family = binomial)
+
+summary(highj_rest_orthogonal_prom)
+
+# Summary into a data frame
+purchase_highj_orthogonal_prom <- tidy(highj_rest_orthogonal_prom)
+
+# Round the numeric columns to three decimal places
+purchase_highj_orthogonal_prom$estimate <- round(purchase_highj_orthogonal_prom$estimate, 2)
+purchase_highj_orthogonal_prom$std.error <- round(purchase_highj_orthogonal_prom$std.error, 2)
+purchase_highj_orthogonal_prom$statistic <- round(purchase_highj_orthogonal_prom$statistic, 2)
+purchase_highj_orthogonal_prom$p.value <- round(purchase_highj_orthogonal_prom$p.value, 2)
+
+write.xlsx(purchase_highj_orthogonal_prom, file = "temporary_files/logit_highj_orthogonal_prom.xlsx")
+
+
+
+
+
+
+
+
+
+
+
 # Models for final Exploration behavior table ----
 
 explored_highu_apps <- glm(highU_explored ~
@@ -1319,66 +1546,6 @@ p_highj
 
 
 
-# Manipulation Check ----
-
-# Shirley's code:
-rfcheck <- read.csv("fa+anova2.csv", header=T) # missing differ
-
-oneway.test(rf_differ ~ factor(join_survey$regulatory_focus), var.equal=TRUE)
-
-summary(rfcheck)
-
-# # What is rf_differ
-# rf_differ = join_survey$PromotionMean - join_survey$PreventionMean
-# a <- aov(rf_differ ~ factor(join_survey$regulatory_focus), data=rfcheck)
-# a
-# TukeyHSD(a)
-# 
-# table(true=rfcheck$regulatory_focus, mani=rfcheck$X.0)
-# chisq.test(table(true=rfcheck$regulatory_focus, mani=rfcheck$X.0))
-
-# Manipulation check from join_survey
-join_survey$PromotionMean <- rowMeans(join_survey[, c("rf2", "rf4", "rf6")])
-join_survey$PreventionMean <- rowMeans(join_survey[, c("rf1", "rf3", "rf7")])
-
-# Calculate the Difference
-join_survey$rf_differ <- join_survey$PromotionMean - join_survey$PreventionMean
-
-# Perform One-Way ANOVA
-a <- aov(rf_differ ~ factor(regulatory_focus), data = join_survey)
-summary(a)
-
-# Post-hoc Test (Tukey HSD) if Needed
-tukey_results <- TukeyHSD(a)
-tukey_results
-
-# Optional: Check for group means
-aggregate(rf_differ ~ regulatory_focus, data = join_survey, mean)
-
-
-# 
-overall_mean <- mean(c(join_survey$PromotionMean, join_survey$PreventionMean))
-join_survey$rf_differ_alt <- (join_survey$PromotionMean - join_survey$PreventionMean) - overall_mean
-
-# Perform ANOVA with the alternative `rf_differ`
-a_alt <- aov(rf_differ_alt ~ factor(regulatory_focus), data = join_survey)
-summary(a_alt)
-
-
-# Cronbach's alpha for Promotion items
-
-promotion_items <- join_survey %>% select(rf2, rf4, rf6)
-prevention_items <- join_survey %>% select(rf1, rf3, rf5)
-
-promotion_alpha <- psych::alpha(promotion_items)
-promotion_alpha
-
-# Calculate Cronbach's alpha for Prevention items
-prevention_alpha <- psych::alpha(prevention_items)
-prevention_alpha
-
-
-
 # Summary of stats ----
 
 data <- surveysub
@@ -1611,162 +1778,201 @@ rf_table <- join_survey %>%
 rf_table
 
 
-# Buy Models with Promotion instead ----
+# Manipulation Check ----
 
-# RegFocus base term
-surveysub$reg_focus_dummy2 <- ifelse(surveysub$regulatory_focus == "Promotion", 1, 0)
-surveysub$reg_focus_dummy2
+# Shirley's code:
+rfcheck <- read.csv("fa+anova2.csv", header=T) # missing differ
 
-# Base: RF_Only
+oneway.test(rf_differ ~ factor(join_survey$regulatory_focus), var.equal=TRUE)
+
+summary(rfcheck)
+
+# # What is rf_differ
+# rf_differ = join_survey$PromotionMean - join_survey$PreventionMean
+# a <- aov(rf_differ ~ factor(join_survey$regulatory_focus), data=rfcheck)
+# a
+# TukeyHSD(a)
+# 
+# table(true=rfcheck$regulatory_focus, mani=rfcheck$X.0)
+# chisq.test(table(true=rfcheck$regulatory_focus, mani=rfcheck$X.0))
+
+# Manipulation check from join_survey
+join_survey$PromotionMean <- rowMeans(join_survey[, c("rf2", "rf4", "rf6")])
+join_survey$PreventionMean <- rowMeans(join_survey[, c("rf1", "rf3", "rf7")])
+
+# Calculate the Difference
+join_survey$rf_differ <- join_survey$PromotionMean - join_survey$PreventionMean
+
+# Perform One-Way ANOVA
+a <- aov(rf_differ ~ factor(regulatory_focus), data = join_survey)
+summary(a)
+
+# Optional: Check for group means
+aggregate(rf_differ ~ regulatory_focus, data = join_survey, mean)
+
+
+# 
+overall_mean <- mean(c(join_survey$PromotionMean, join_survey$PreventionMean))
+join_survey$rf_differ_alt <- (join_survey$PromotionMean - join_survey$PreventionMean) - overall_mean
+
+# Perform ANOVA with the alternative `rf_differ`
+a_alt <- aov(rf_differ_alt ~ factor(regulatory_focus), data = join_survey)
+summary(a_alt)
+
+
+# Cronbach's alpha for Promotion items
+
+promotion_items <- join_survey %>% select(rf2, rf4, rf6)
+prevention_items <- join_survey %>% select(rf1, rf3, rf5)
+
+promotion_alpha <- psych::alpha(promotion_items)
+promotion_alpha
+
+# Calculate Cronbach's alpha for Prevention items
+prevention_alpha <- psych::alpha(prevention_items)
+prevention_alpha
+
+
+# New Manipulation Checks with rescaled rf items ----
+
+# Rescale rf items to 0-6
+join_survey_rescaled <- join_survey %>%
+  mutate(across(c(rf1, rf2, rf3, rf4, rf5, rf6), ~ . - 1))
+
+join_survey_rescaled$rf1
+
+# Calculate PromotionMean and PreventionMean plus their difference (rf_differ)
+join_survey_rescaled <- join_survey_rescaled %>%
+  mutate(
+    PromotionMean_rescaled = rowMeans(across(c(rf2, rf4, rf6)), na.rm = TRUE),
+    PreventionMean_rescaled = rowMeans(across(c(rf1, rf3, rf5)), na.rm = TRUE),
+    rf_differ_rescaled = PromotionMean_rescaled - PreventionMean_rescaled
+  )
+
+# Aggregate means by rf
+aggregate_results_rescaled <- join_survey_rescaled %>%
+  group_by(regulatory_focus) %>%
+  summarize(
+    PromotionMean = round(mean(PromotionMean_rescaled, na.rm = TRUE), 2),
+    PreventionMean = round(mean(PreventionMean_rescaled, na.rm = TRUE), 2),
+    RFdiff_Mean = round(mean(rf_differ_rescaled, na.rm = TRUE), 2)
+  )
+
+aggregate_results_rescaled
+
+# Anova on rf_differ
+anova_result_rescaled <- aov(rf_differ_rescaled ~ factor(regulatory_focus), 
+                             data = join_survey_rescaled)
+
+summary(anova_result_rescaled)
+
+
+# Rescaling rf items to -3 to 3 
+
+join_survey_rescaled_3 <- join_survey %>%
+  mutate(across(c(rf1, rf2, rf3, rf4, rf5, rf6), ~ (. - 4)))
+
+join_survey_rescaled_3$rf1
+
+# Calculate PromotionMean, PreventionMean, and their difference (rf_differ) in the rescaled (-3 to 3) dataset
+join_survey_rescaled_3 <- join_survey_rescaled_3 %>%
+  mutate(
+    PromotionMean_rescaled_3 = rowMeans(across(c(rf2, rf4, rf6)), na.rm = TRUE),
+    PreventionMean_rescaled_3 = rowMeans(across(c(rf1, rf3, rf5)), na.rm = TRUE),
+    rf_differ_rescaled_3 = PromotionMean_rescaled_3 - PreventionMean_rescaled_3
+  )
+
+# Aggregate means by regulatory focus (rescaled -3 to 3 dataset)
+aggregate_results_rescaled_3 <- join_survey_rescaled_3 %>%
+  group_by(regulatory_focus) %>%
+  summarize(
+    PromotionMean = round(mean(PromotionMean_rescaled_3, na.rm = TRUE), 2),
+    PreventionMean = round(mean(PreventionMean_rescaled_3, na.rm = TRUE), 2),
+    RFdiff_Mean = round(mean(rf_differ_rescaled_3, na.rm = TRUE), 2)
+  )
+
+aggregate_results_rescaled_3
+
+# Perform ANOVA on rf_differ (rescaled -3 to 3 dataset)
+anova_result_rescaled_3 <- aov(rf_differ_rescaled_3 ~ factor(regulatory_focus), data = join_survey_rescaled_3)
+
+summary(anova_result_rescaled_3)
+
+
+# Regression results using Δ_RFsurvey_questions ----
+
+join_survey_rescaled <- join_survey_rescaled %>%
+  mutate(
+    delta_rf = PromotionMean - PreventionMean  # Difference score
+  )
+
+head(join_survey_rescaled$delta_rf, 50)
+
+join_survey_rescaled_3 <- join_survey_rescaled_3 %>%
+  mutate(
+    delta_rf = PromotionMean - PreventionMean  # Difference score
+  )
+
+head(join_survey_rescaled_3$delta_rf, 50)
+
+
+hist(join_survey_rescaled_3$delta_rf, 
+     main="Distribution of Delta RegFocus", 
+     xlab="Delta RegFocus", 
+     breaks=20)
+
+summary(join_survey_rescaled_3$delta_rf)
+
+
+# Add delta_rf into surveysub
+join_survey_rescaled_3 <- join_survey_rescaled_3 %>%
+  mutate(age = as.integer(age)) 
+
+# Filter rows in join_survey_rescaled_3 based on matching 'age' column in surveysub
+join_survey_filtered <- join_survey_rescaled_3 %>%
+  filter(age %in% surveysub$age) %>%
+  select(age, delta_rf)
+
+# Adding delta_rf column to surveysub
+surveysub <- surveysub %>%
+  mutate(delta_rf = join_survey_filtered$delta_rf)
+
+# Check if the rows matched
+age_equal <- all(join_survey_filtered$age == surveysub$age)
+age_equal
+
+# Models: 
+
 # HighU
-purchase_highu_prom <- glm(highu_rest ~
-                             reg_focus_dummy2 +
-                             age + 
-                             gender + 
-                             income + 
-                             visit_frequency + 
-                             app_expense + 
-                             previous_experience + 
-                             platform_preference + 
-                             involvement + 
-                             appname_purchased + 
-                             apporder_purchased, 
-                           data = surveysub, 
-                           family = binomial)
+highu_rest_base_delta <- glm(highu_rest ~
+                          delta_rf +
+                          expHighJ_only +
+                          expHighU_only +
+                          exp_both_high +
+                          age + 
+                          gender + 
+                          income + 
+                          visit_frequency + 
+                          app_expense + 
+                          previous_experience + 
+                          platform_preference + 
+                          involvement + 
+                          appname_purchased + 
+                          apporder_purchased, 
+                        data = surveysub, 
+                        family = binomial)
 
-summary(purchase_highu_prom)
-
-# Summary into a data frame
-purchase_highu_prom <- tidy(purchase_highu_prom)
-
-# Round the numeric columns to two decimal places
-purchase_highu_prom$estimate <- round(purchase_highu_prom$estimate, 2)
-purchase_highu_prom$std.error <- round(purchase_highu_prom$std.error, 2)
-purchase_highu_prom$statistic <- round(purchase_highu_prom$statistic, 2)
-purchase_highu_prom$p.value <- round(purchase_highu_prom$p.value, 2)
-
-write.xlsx(purchase_highu_prom, file = "temporary_files/logit_highu_prom.xlsx")
-
-# HighJ
-purchase_highj_prom <- glm(highj_rest ~
-                             reg_focus_dummy2 +
-                             age + 
-                             gender + 
-                             income + 
-                             visit_frequency + 
-                             app_expense + 
-                             previous_experience + 
-                             platform_preference + 
-                             involvement + 
-                             appname_purchased + 
-                             apporder_purchased, 
-                           data = surveysub, 
-                           family = binomial)
-
-summary(purchase_highj_prom)
-
-# Summary into a data frame
-purchase_highj_prom <- tidy(purchase_highj_prom)
-
-# Round the numeric columns to two decimal places
-purchase_highj_prom$estimate <- round(purchase_highj_prom$estimate, 2)
-purchase_highj_prom$std.error <- round(purchase_highj_prom$std.error, 2)
-purchase_highj_prom$statistic <- round(purchase_highj_prom$statistic, 2)
-purchase_highj_prom$p.value <- round(purchase_highj_prom$p.value, 2)
-
-write.xlsx(purchase_highj_prom, file = "temporary_files/logit_highj_prom.xlsx")
-
-
-# Exp: RF_Only + Explorations
-
-# HighU Exploration
-purchase_highu_exp_prom <- glm(highu_rest ~
-                            reg_focus_dummy2 +
-                            expHighJ_only +
-                            expHighU_only +
-                            exp_both_high +
-                            age + 
-                            gender + 
-                            income + 
-                            visit_frequency + 
-                            app_expense + 
-                            previous_experience + 
-                            platform_preference + 
-                            involvement + 
-                            appname_purchased + 
-                            apporder_purchased, 
-                          data = surveysub, 
-                          family = binomial)
-
-summary(purchase_highu_exp_prom)
-
-# Summary into a data frame
-purchase_highu_exp_prom <- tidy(purchase_highu_exp_prom)
-
-# Round the numeric columns to two decimal places
-purchase_highu_exp_prom$estimate <- round(purchase_highu_exp_prom$estimate, 2)
-purchase_highu_exp_prom$std.error <- round(purchase_highu_exp_prom$std.error, 2)
-purchase_highu_exp_prom$statistic <- round(purchase_highu_exp_prom$statistic, 2)
-purchase_highu_exp_prom$p.value <- round(purchase_highu_exp_prom$p.value, 2)
-
-write.xlsx(purchase_highu_exp_prom, file = "temporary_files/logit_highu_exp_prom.xlsx")
-
-# HighJ Exploration
-purchase_highj_exp_prom <- glm(highj_rest ~
-                            reg_focus_dummy2 +
-                            expHighJ_only +
-                            expHighU_only +
-                            exp_both_high +
-                            age + 
-                            gender + 
-                            income + 
-                            visit_frequency + 
-                            app_expense + 
-                            previous_experience + 
-                            platform_preference + 
-                            involvement + 
-                            appname_purchased + 
-                            apporder_purchased, 
-                          data = surveysub, 
-                          family = binomial)
-
-summary(purchase_highj_exp_prom)
-
-# Summary into a data frame
-purchase_highj_exp_prom <- tidy(purchase_highj_exp_prom)
-
-# Round the numeric columns to two decimal places
-purchase_highj_exp_prom$estimate <- round(purchase_highj_exp_prom$estimate, 2)
-purchase_highj_exp_prom$std.error <- round(purchase_highj_exp_prom$std.error, 2)
-purchase_highj_exp_prom$statistic <- round(purchase_highj_exp_prom$statistic, 2)
-purchase_highj_exp_prom$p.value <- round(purchase_highj_exp_prom$p.value, 2)
-
-write.xlsx(purchase_highj_exp_prom, file = "temporary_files/logit_highj_exp_prom.xlsx")
-
-# Interaction terms using a dummy variable (every variable has to be numeric)
-surveysub$int_expHighJ_rf2 <- surveysub$expHighJ_only * surveysub$reg_focus_dummy2
-surveysub$int_expHighU_rf2 <- surveysub$expHighU_only * surveysub$reg_focus_dummy2
-surveysub$int_expBoth_rf2  <- surveysub$exp_both_high * surveysub$reg_focus_dummy2
-
-# Orthogonalize the interaction terms
-int_expHighJ_rf_reg2 <- lm(int_expHighJ_rf2 ~ expHighJ_only + reg_focus_dummy2, data = surveysub)
-surveysub$int_expHighJ_rf_orthogonal2 <- residuals(int_expHighJ_rf_reg2)
-
-int_expHighU_rf_reg2 <- lm(int_expHighU_rf2 ~ expHighU_only + reg_focus_dummy2, data = surveysub)
-surveysub$int_expHighU_rf_orthogonal2 <- residuals(int_expHighU_rf_reg2)
-
-int_expBoth_rf_reg2 <- lm(int_expBoth_rf2 ~ exp_both_high + reg_focus_dummy2, data = surveysub)
-surveysub$int_expBoth_rf_orthogonal2 <- residuals(int_expBoth_rf_reg2)
+summary(highu_rest_base_delta)
 
 # HighU
-highu_rest_orthogonal_prom <- glm(highu_rest ~
-                               reg_focus_dummy2 +  # Use the single dummy variable
+highu_rest_delta <- glm(highu_rest ~
+                               delta_rf +
                                expHighJ_only +
                                expHighU_only +
                                exp_both_high +
-                               int_expHighJ_rf_orthogonal2 +
-                               int_expHighU_rf_orthogonal2 +
-                               int_expBoth_rf_orthogonal2 +
+                               expHighJ_only * delta_rf +
+                               expHighU_only * delta_rf +
+                               exp_both_high * delta_rf +
                                age + 
                                gender + 
                                income + 
@@ -1780,28 +1986,40 @@ highu_rest_orthogonal_prom <- glm(highu_rest ~
                              data = surveysub, 
                              family = binomial)
 
-summary(highu_rest_orthogonal_prom)
+summary(highu_rest_delta)
 
-# Summary into a data frame
-purchase_highu_orthogonal_prom <- tidy(highu_rest_orthogonal_prom)
 
-# Round the numeric columns to three decimal places
-purchase_highu_orthogonal_prom$estimate <- round(purchase_highu_orthogonal_prom$estimate, 2)
-purchase_highu_orthogonal_prom$std.error <- round(purchase_highu_orthogonal_prom$std.error, 2)
-purchase_highu_orthogonal_prom$statistic <- round(purchase_highu_orthogonal_prom$statistic, 2)
-purchase_highu_orthogonal_prom$p.value <- round(purchase_highu_orthogonal_prom$p.value, 2)
+# HighJ Base
+highj_rest_base_delta <- glm(highj_rest ~
+                          delta_rf +
+                          expHighJ_only +
+                          expHighU_only +
+                          exp_both_high +
+                          age + 
+                          gender + 
+                          income + 
+                          visit_frequency + 
+                          app_expense + 
+                          previous_experience + 
+                          platform_preference + 
+                          involvement + 
+                          appname_purchased + 
+                          apporder_purchased, 
+                        data = surveysub, 
+                        family = binomial)
 
-write.xlsx(purchase_highu_orthogonal_prom, file = "temporary_files/logit_highu_orthogonal_prom.xlsx")
+summary(highj_rest_base_delta)
+
 
 # HighJ
-highj_rest_orthogonal_prom <- glm(highj_rest ~
-                               reg_focus_dummy2 +
+highj_rest_delta <- glm(highj_rest ~
+                               delta_rf +
                                expHighJ_only +
                                expHighU_only +
                                exp_both_high +
-                               int_expHighJ_rf_orthogonal2 +
-                               int_expHighU_rf_orthogonal2 +
-                               int_expBoth_rf_orthogonal2 +
+                               expHighJ_only * delta_rf +
+                               expHighU_only * delta_rf +
+                               exp_both_high * delta_rf +
                                age + 
                                gender + 
                                income + 
@@ -1815,25 +2033,6 @@ highj_rest_orthogonal_prom <- glm(highj_rest ~
                              data = surveysub, 
                              family = binomial)
 
-summary(highj_rest_orthogonal_prom)
-
-# Summary into a data frame
-purchase_highj_orthogonal_prom <- tidy(highj_rest_orthogonal_prom)
-
-# Round the numeric columns to three decimal places
-purchase_highj_orthogonal_prom$estimate <- round(purchase_highj_orthogonal_prom$estimate, 2)
-purchase_highj_orthogonal_prom$std.error <- round(purchase_highj_orthogonal_prom$std.error, 2)
-purchase_highj_orthogonal_prom$statistic <- round(purchase_highj_orthogonal_prom$statistic, 2)
-purchase_highj_orthogonal_prom$p.value <- round(purchase_highj_orthogonal_prom$p.value, 2)
-
-write.xlsx(purchase_highj_orthogonal_prom, file = "temporary_files/logit_highj_orthogonal_prom.xlsx")
-
-
-
-
-
-
-
-
+summary(highj_rest_delta)
 
 

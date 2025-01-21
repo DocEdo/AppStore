@@ -70,8 +70,6 @@ nine_survey <- read_excel(nine_xlsx, sheet = "survey")
 
 # Adding columns from join_survey into surveysub ----
 
-require(tidyverse)
-
 # Converting age column in join_survey to integer
 join_survey <- join_survey %>%
   mutate(age = as.integer(age))

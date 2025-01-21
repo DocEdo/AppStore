@@ -1201,7 +1201,7 @@ total_unique_subjects_venn
 
 venn_plot <- ggvenn(
   venn_data,
-  fill_color = c("gray90", "gray70", "gray50", "gray30"), # Shades of gray
+  fill_color = c("gray30", "gray50", "gray70", "gray90"), # Shades of gray
   text_size = 4.2
 )
 
