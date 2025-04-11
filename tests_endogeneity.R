@@ -167,13 +167,33 @@ summary(first_stage3)
 
 
 # Model A: Naive
-naive_model <- glm(highu_rest ~ expHighU_only + ...other controls..., family = binomial, data = surveysub)
+model_naive <- glm(highu_rest ~ 
+                     reg_focus_dummy + expHighU_only + expHighJ_only + exp_both_high +
+                     int_expHighJ_rf_orthogonal + int_expHighU_rf_orthogonal + int_expBoth_rf_orthogonal +
+                     age + gender + income + visit_frequency + app_expense + previous_experience +
+                     platform_preference + involvement + appname_purchased + apporder_purchased,
+                   data = surveysub,
+                   family = binomial)
 
-# Model B: 2SRI-style (with residual, assuming it's not dropped)
-corrected_model <- glm(highu_rest ~ expHighU_only + resid_expHighU + ...controls..., family = binomial, data = surveysub)
+# Model B: 2SRI-style (with residual)
+model_resids <- glm(highu_rest ~ 
+                    reg_focus_dummy + expHighU_only + expHighJ_only + exp_both_high +
+                    int_expHighJ_rf_orthogonal + int_expHighU_rf_orthogonal + int_expBoth_rf_orthogonal +
+                    age + gender + income + visit_frequency + app_expense + previous_experience +
+                    platform_preference + involvement + appname_purchased + apporder_purchased +
+                    resid_expHighU,
+                  data = surveysub,
+                  family = binomial)
+
+
 
 # Compare the coefficient for expHighU_only
-coef(naive_model)["expHighU_only"] - coef(corrected_model)["expHighU_only"]
+coef_naive <- coef(model_naive)["expHighU_only"]
+coef_2sri  <- coef(model_resids)["expHighU_only"]
+
+diff_coef <- coef_naive - coef_2sri
+diff_coef
+
 
 
 
