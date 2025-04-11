@@ -7,6 +7,9 @@ library("pscl")
 library("caret")
 library("broom")
 library("knitr")
+library("tidytext")
+library("wordcloud")
+library("patchwork")
 
 # Data Preparation: -----
 
@@ -673,12 +676,14 @@ cat("P-value:", p_highj_int, "\n")
 
 # Orthogonalization of Intx terms ----
 surveysub$reg_focus_dummy <- ifelse(surveysub$regulatory_focus == "Prevention", 1, 0)
-surveysub$reg_focus_dummy
+
+surveysub$highU_explored_num <- ifelse(surveysub$highU_explored == "TRUE", 1, 0)
 
 # Interaction terms using a dummy variable (every variable has to be numeric)
 surveysub$int_expHighJ_rf <- surveysub$expHighJ_only * surveysub$reg_focus_dummy
 surveysub$int_expHighU_rf <- surveysub$expHighU_only * surveysub$reg_focus_dummy
 surveysub$int_expBoth_rf  <- surveysub$exp_both_high * surveysub$reg_focus_dummy
+surveysub$int_highU_explored_rf <- surveysub$highU_explored_num * surveysub$reg_focus_dummy
 
 # Orthogonalize the interaction terms
 int_expHighJ_rf_reg <- lm(int_expHighJ_rf ~ expHighJ_only + reg_focus_dummy, data = surveysub)
@@ -689,6 +694,10 @@ surveysub$int_expHighU_rf_orthogonal <- residuals(int_expHighU_rf_reg)
 
 int_expBoth_rf_reg <- lm(int_expBoth_rf ~ exp_both_high + reg_focus_dummy, data = surveysub)
 surveysub$int_expBoth_rf_orthogonal <- residuals(int_expBoth_rf_reg)
+
+int_highU_explored_rf_reg <- lm(int_highU_explored_rf ~ highU_explored_num + reg_focus_dummy, data = surveysub)
+surveysub$int_highU_explored_rf_orthogonal <- residuals(int_highU_explored_rf_reg)
+
 
 # HighU
 highu_rest_orthogonal <- glm(highu_rest ~
@@ -730,13 +739,13 @@ summary(highu_rest_temp)
 
 # HighJ
 highj_rest_orthogonal <- glm(highj_rest ~
-                                    reg_focus_dummy +  # Use the single dummy variable
+                                    reg_focus_dummy +
                                     expHighJ_only +
                                     expHighU_only +
                                     exp_both_high +
-                                    int_expHighJ_rf_orthogonal +  # Orthogonalized interaction
-                                    int_expHighU_rf_orthogonal +  # Orthogonalized interaction
-                                    int_expBoth_rf_orthogonal +   # Orthogonalized interaction
+                                    int_expHighJ_rf_orthogonal +
+                                    int_expHighU_rf_orthogonal +
+                                    int_expBoth_rf_orthogonal + 
                                     age + 
                                     gender + 
                                     income + 
@@ -1064,6 +1073,67 @@ purchase_highj_exp$p.value <- round(purchase_highj_exp$p.value, 2)
 
 write.xlsx(purchase_highj_exp, file = "temporary_files/logit_highj_exp.xlsx")
 
+# highU_explored base
+# HighU
+purchase_highu_explored <- glm(highu_rest ~
+                             reg_focus_dummy +
+                             highU_explored +
+                             age + 
+                             gender + 
+                             income + 
+                             visit_frequency + 
+                             app_expense + 
+                             previous_experience + 
+                             platform_preference + 
+                             involvement + 
+                             appname_purchased + 
+                             apporder_purchased, 
+                           data = surveysub, 
+                           family = binomial)
+
+summary(purchase_highu_explored)
+
+purchase_highu_explored <- tidy(purchase_highu_explored)
+
+# Two decimal places and round
+purchase_highu_explored$estimate <- round(purchase_highu_explored$estimate, 2)
+purchase_highu_explored$std.error <- round(purchase_highu_explored$std.error, 2)
+purchase_highu_explored$statistic <- round(purchase_highu_explored$statistic, 2)
+purchase_highu_explored$p.value <- round(purchase_highu_explored$p.value, 2)
+
+write.xlsx(purchase_highu_explored, file = "temporary_files/logit_highu_explored.xlsx")
+
+# highU_explored intx orthogonal
+# HighU
+purchase_highu_exp_inxorth <- glm(highu_rest ~
+                                reg_focus_dummy +
+                                highU_explored +
+                                int_highU_explored_rf_orthogonal +
+                                age + 
+                                gender + 
+                                income + 
+                                visit_frequency + 
+                                app_expense + 
+                                previous_experience + 
+                                platform_preference + 
+                                involvement + 
+                                appname_purchased + 
+                                apporder_purchased, 
+                              data = surveysub, 
+                              family = binomial)
+
+summary(purchase_highu_exp_inxorth)
+
+purchase_highu_exp_inxorth <- tidy(purchase_highu_exp_inxorth)
+
+# Two decimal places and round
+purchase_highu_exp_inxorth$estimate <- round(purchase_highu_exp_inxorth$estimate, 2)
+purchase_highu_exp_inxorth$std.error <- round(purchase_highu_exp_inxorth$std.error, 2)
+purchase_highu_exp_inxorth$statistic <- round(purchase_highu_exp_inxorth$statistic, 2)
+purchase_highu_exp_inxorth$p.value <- round(purchase_highu_exp_inxorth$p.value, 2)
+
+write.xlsx(purchase_highu_exp_inxorth, file = "temporary_files/logit_highu_exp_intx_orthogonal.xlsx")
+
 
 # Buy Models with Promotion instead ----
 
@@ -1358,57 +1428,9 @@ summary(highj_rest_orthogonal)
 summary(explored_highu_apps)
 summary(explored_highj_apps)
 
-# Chi-square ----
+# Relative GoF Chi-square ----
 
-# ANOVA - compare nested models and see if the predictors improve the model. Similar to BIC AIC
-
-# HighU
-# Compare Base Model vs Exploration Model
-anova(purchase_highu_base, purchase_highu_exp, test = "Chisq")
-
-# Compare Exploration Model vs Interaction Model
-anova(purchase_highu_exp, highu_rest_orthogonal, test = "Chisq")
-
-# HighJ
-# Compare Base Model vs Exploration Model
-anova(purchase_highj_base, purchase_highj_exp, test = "Chisq")
-
-# Compare Exploration Model vs Interaction Model
-anova(purchase_highj_exp, highj_rest_orthogonal, test = "Chisq")
-
-
-# # NULL approach - compare the full model to a null model that has no predictors
-# 
-# # HighU
-# null_highu <- glm(highu_rest ~ 1, data = surveysub, family = binomial)
-# 
-# highu_rest_orthogonal
-# 
-# chi_sq_highu <- null_highu$deviance - highu_rest_orthogonal$deviance
-# chi_sq_highu
-# 
-# df_highu <- null_highu$df.residual - highu_rest_orthogonal$df.residual
-# df_highu
-# 
-# p_highu <- pchisq(chi_sq_highu, df_highu, lower.tail = FALSE)
-# p_highu
-# 
-# # HighJ
-# null_highj <- glm(highj_rest ~ 1, data = surveysub, family = binomial)
-# 
-# highj_rest_orthogonal
-# 
-# chi_sq_highj <- null_highj$deviance - highj_rest_orthogonal$deviance
-# chi_sq_highj
-# 
-# df_highj <- null_highj$df.residual - highj_rest_orthogonal$df.residual
-# df_highj
-# 
-# p_highj <- pchisq(chi_sq_highj, df_highj, lower.tail = FALSE)
-# p_highj
-
-# Null approach
-
+# Relative GoF - Used in final table:
 # HighU
 chi_sq_highu <- purchase_highu_base$deviance - purchase_highu_exp$deviance
 round(chi_sq_highu, 2)
@@ -1448,8 +1470,51 @@ p_highj2 <- pchisq(chi_sq_highj2, df_highj2, lower.tail = FALSE)
 round(p_highj2, 2)
 
 
-# Chi-square Null for three purchase models and exploration behavior
 
+# Exploration logits
+
+# HighU
+null_exp_highu <- glm(highU_explored ~ 1, data = surveysub, family = binomial)
+
+chi_sq_expu <- null_exp_highu$deviance - explored_highu_apps$deviance
+chi_sq_expu
+
+df_expu <- null_exp_highu$df.residual - explored_highu_apps$df.residual
+df_expu
+
+p_expu <- pchisq(chi_sq_expu, df_expu, lower.tail = FALSE)
+p_expu
+
+# HighJ
+null_exp_highj <- glm(highJ_explored ~ 1, data = surveysub, family = binomial)
+
+chi_sq_expj <- null_exp_highj$deviance - explored_highj_apps$deviance
+chi_sq_expj
+
+df_expj <- null_exp_highj$df.residual - explored_highj_apps$df.residual
+df_expj
+
+p_highj <- pchisq(chi_sq_expj, df_expj, lower.tail = FALSE)
+p_highj
+
+
+# NOT USED: ANOVA - compare nested models and see if the predictors improve the model. Similar to BIC AIC
+# HighU
+# Compare Base Model vs Exploration Model
+anova(purchase_highu_base, purchase_highu_exp, test = "Chisq")
+
+# Compare Exploration Model vs Interaction Model
+anova(purchase_highu_exp, highu_rest_orthogonal, test = "Chisq")
+
+# HighJ
+# Compare Base Model vs Exploration Model
+anova(purchase_highj_base, purchase_highj_exp, test = "Chisq")
+
+# Compare Exploration Model vs Interaction Model
+anova(purchase_highj_exp, highj_rest_orthogonal, test = "Chisq")
+
+
+# NOT USED: Chi-square Null for three purchase models and exploration behavior
 # Purhcase models: purchase_highu_base purchase_highu_exp highu_rest_orthogonal
 
 # HighU
@@ -1517,33 +1582,6 @@ df_highjint
 
 p_highjint <- pchisq(chi_sq_highjint, df_highjint, lower.tail = FALSE)
 p_highjint
-
-# Exploration logits
-
-# HighU
-null_exp_highu <- glm(highU_explored ~ 1, data = surveysub, family = binomial)
-
-chi_sq_expu <- null_exp_highu$deviance - explored_highu_apps$deviance
-chi_sq_expu
-
-df_expu <- null_exp_highu$df.residual - explored_highu_apps$df.residual
-df_expu
-
-p_expu <- pchisq(chi_sq_expu, df_expu, lower.tail = FALSE)
-p_expu
-
-# HighJ
-null_exp_highj <- glm(highJ_explored ~ 1, data = surveysub, family = binomial)
-
-chi_sq_expj <- null_exp_highj$deviance - explored_highj_apps$deviance
-chi_sq_expj
-
-df_expj <- null_exp_highj$df.residual - explored_highj_apps$df.residual
-df_expj
-
-p_highj <- pchisq(chi_sq_expj, df_expj, lower.tail = FALSE)
-p_highj
-
 
 
 # Summary of stats ----
@@ -1833,7 +1871,7 @@ prevention_alpha <- psych::alpha(prevention_items)
 prevention_alpha
 
 
-# New Manipulation Checks with rescaled rf items ----
+# New Manipulation Checks with re-scaled rf items ----
 
 # Rescale rf items to 0-6
 join_survey_rescaled <- join_survey %>%
@@ -1943,6 +1981,23 @@ age_equal
 
 # Models: 
 
+highu_rest_controls_delta <- glm(highu_rest ~
+                               delta_rf +
+                               age + 
+                               gender + 
+                               income + 
+                               visit_frequency + 
+                               app_expense + 
+                               previous_experience + 
+                               platform_preference + 
+                               involvement + 
+                               appname_purchased + 
+                               apporder_purchased, 
+                             data = surveysub, 
+                             family = binomial)
+
+summary(highu_rest_controls_delta)
+
 # HighU
 highu_rest_base_delta <- glm(highu_rest ~
                           delta_rf +
@@ -1988,6 +2043,23 @@ highu_rest_delta <- glm(highu_rest ~
 
 summary(highu_rest_delta)
 
+# HighJ Base Controls
+highj_rest_controls_delta <- glm(highj_rest ~
+                               delta_rf +
+                               age + 
+                               gender + 
+                               income + 
+                               visit_frequency + 
+                               app_expense + 
+                               previous_experience + 
+                               platform_preference + 
+                               involvement + 
+                               appname_purchased + 
+                               apporder_purchased, 
+                             data = surveysub, 
+                             family = binomial)
+
+summary(highj_rest_controls_delta)
 
 # HighJ Base
 highj_rest_base_delta <- glm(highj_rest ~
@@ -2034,5 +2106,407 @@ highj_rest_delta <- glm(highj_rest ~
                              family = binomial)
 
 summary(highj_rest_delta)
+
+
+
+# Interaction plot attempt ----
+
+# New explore vars
+# expHighJ_only
+# expHighU_only
+# exp_both_high
+
+surveysub_clean3 <- surveysub %>%
+  filter(!is.na(highju))
+
+# Intx Plots with new Explore variables
+surveysub_clean3 <- surveysub_clean3 %>%
+  mutate(
+    expHighU_only = factor(expHighU_only, levels = c(0, 1), labels = c("Not Explored", "Explored")),
+    expHighJ_only = factor(expHighJ_only, levels = c(0, 1), labels = c("Not Explored", "Explored")),
+    exp_both_high = factor(exp_both_high, levels = c(0, 1), labels = c("Not Explored", "Explored"))
+  )
+
+summary_stats <- surveysub_clean3 %>%
+  group_by(regulatory_focus, highU_explored) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SE = sd(highju, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE,
+    regulatory_focus = factor(regulatory_focus, levels = c("Promotion", "Prevention")), 
+    highU_explored = as.factor(highU_explored)
+  )
+
+summary_stats
+
+
+# HighU Any
+highu_any_intxplot <- ggplot(summary_stats, aes(x = regulatory_focus, 
+                                              y = Avg_Purchase, 
+                                              group = highU_explored, 
+                                              linetype = highU_explored, 
+                                              shape = highU_explored)) +
+  geom_line(linewidth = 1, color = "black") +  
+  geom_point(size = 4, color = "black") +
+  scale_linetype_manual(values = c("dashed", "solid")) +  
+  scale_shape_manual(values = c(0, 2)) +  
+  labs(x = "Induced Regulatory Focus", 
+       y = "HighU Purchase Probability", 
+       linetype = "HighU Explored", 
+       shape = "HighU Explored") +
+  coord_cartesian(ylim = c(0, 0.8)) +
+  theme_classic(base_size = 18) +
+  theme(
+    axis.line = element_line(color = "black"), 
+    axis.ticks = element_line(color = "black"),
+    axis.title = element_text(face = "bold", size = 16),  
+    axis.text = element_text(size = 14),  
+    legend.text = element_text(size = 14),  
+    legend.position = "right"
+  )
+
+highu_any_intxplot
+
+# highu_any_intxplot2 <- ggplot(summary_stats, aes(x = regulatory_focus, 
+#                                                 y = Avg_Purchase, 
+#                                                 group = highU_explored, 
+#                                                 linetype = highU_explored, 
+#                                                 shape = highU_explored)) +
+#   geom_line(linewidth = 1, color = "black") +  
+#   geom_point(size = 4, color = "black") +
+#   scale_linetype_manual(values = c("dashed", "solid")) +  
+#   scale_shape_manual(values = c(0, 2)) +  
+#   labs(x = "Induced Regulatory Focus", 
+#        y = "HighU Purchase Probability", 
+#        linetype = "HighU Explored", 
+#        shape = "HighU Explored") +
+#   coord_cartesian(ylim = c(0, 0.8)) +
+#   theme_classic(base_size = 18) +
+#   theme(
+#     axis.line = element_line(color = "black"), 
+#     axis.ticks = element_line(color = "black"),
+#     axis.title = element_text(face = "bold", size = 16),  
+#     axis.text = element_text(size = 14),  
+#     legend.text = element_text(size = 14),  
+#     legend.position = c(0.05, 0.95),  # Works but not it's deprecated 
+#     legend.justification = c(0, 1)  
+#   )
+# 
+# highu_any_intxplot2
+
+
+
+summary_stats2 <- surveysub_clean3 %>%
+  group_by(regulatory_focus, highJ_explored) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SE = sd(highju, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE,
+    regulatory_focus = factor(regulatory_focus, levels = c("Promotion", "Prevention")), 
+    highU_explored = as.factor(highJ_explored)
+  )
+
+summary_stats2
+
+# HighJ any
+interaction_plot2 <- ggplot(summary_stats2, 
+                            aes(x = regulatory_focus,
+                                y = Avg_Purchase,
+                                group = highJ_explored,
+                                linetype = highJ_explored,
+                                shape = highJ_explored)) +
+  geom_line(linewidth = 1, color = "black") +  
+  geom_point(size = 4, color = "black") +
+  scale_linetype_manual(values = c("dashed", "solid")) +  
+  scale_shape_manual(values = c(0, 2)) +  
+  
+  labs(x = "Induced Regulatory Focus", 
+       y = "Purchase Probability", 
+       linetype = "HighJ Explored", 
+       shape = "HighJ Explored") +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_classic(base_size = 16) + 
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"), 
+    axis.title = element_text(face = "bold", size = 16),  
+    axis.text = element_text(size = 14),  
+    legend.text = element_text(size = 14),  
+    legend.position = "right"
+  )
+
+interaction_plot2
+
+
+## expHighU_only
+
+# Summarize data for expHighU_only
+summary_stats3 <- surveysub_clean3 %>%
+  group_by(regulatory_focus, expHighU_only) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE), # probability
+    SE = sd(highju, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+intx_exphighu <- ggplot(summary_stats3, 
+                            aes(x = regulatory_focus, 
+                                y = Avg_Purchase, 
+                                group = expHighU_only, 
+                                linetype = expHighU_only, 
+                                shape = expHighU_only)) +
+  
+  geom_line(linewidth = 1, color = "black") +  
+  geom_point(size = 4, color = "black") +
+  scale_linetype_manual(values = c("dashed", "solid")) +  
+  scale_shape_manual(values = c(0, 2)) +  
+  labs(x = "Induced Regulatory Focus", 
+       y = "HighU Purchase Probability",
+       linetype = "Only HighU Explored", 
+       shape = "Only HighU Explored") +
+  coord_cartesian(ylim = c(0, 0.8)) + # Standardize Y-axis limits to 0-1
+  theme_classic(base_size = 18) +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.title = element_text(face = "bold", size = 16),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    legend.position = "right"
+  )
+
+intx_exphighu
+
+## expHighJ_only
+
+# Summarize data for expHighJ_only
+summary_stats4 <- surveysub_clean3 %>%
+  group_by(regulatory_focus, expHighJ_only) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SE = sd(highju, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+
+interaction_plot4 <- ggplot(summary_stats4, 
+                            aes(x = regulatory_focus,
+                                y = Avg_Purchase,
+                                group = expHighJ_only,
+                                linetype = expHighJ_only,
+                                shape = expHighJ_only)) +
+  
+  geom_line(linewidth = 1, color = "black") +  
+  geom_point(size = 4, color = "black") +
+  
+  scale_linetype_manual(values = c("dashed", "solid")) +  
+  scale_shape_manual(values = c(0, 2)) +  
+  
+  labs(x = "Induced Regulatory Focus", 
+       y = "HighU Purchased Probability", 
+       linetype = "Only HighJ Explored", 
+       shape = "Only HighJ Explored") +
+  coord_cartesian(ylim = c(0,0.8)) +
+  theme_classic(base_size = 18) +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.title = element_text(face = "bold", size = 16),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    legend.position = "right"
+  )
+
+interaction_plot4
+
+
+# Summarize data for exp_bothju
+summary_stats5 <- surveysub_clean3 %>%
+  group_by(regulatory_focus, exp_both_high) %>%
+  summarise(
+    Avg_Purchase = mean(highju, na.rm = TRUE),
+    SE = sd(highju, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  ) %>%
+  ungroup() %>%
+  mutate(
+    lower = Avg_Purchase - 1.96 * SE,
+    upper = Avg_Purchase + 1.96 * SE
+  )
+
+
+intx_expboth <- ggplot(summary_stats5, 
+                            aes(x = regulatory_focus,
+                                y = Avg_Purchase,
+                                group = exp_both_high,
+                                linetype = exp_both_high,
+                                shape = exp_both_high)) +
+  
+  geom_line(linewidth = 1, color = "black") +  
+  geom_point(size = 4, color = "black") +
+  
+  scale_linetype_manual(values = c("dashed", "solid")) +  
+  scale_shape_manual(values = c(0, 2)) +  
+  
+  labs(x = "Induced Regulatory Focus", 
+       y = "HighU Purchase Probability", 
+       linetype = "Explored Both High U & J", 
+       shape = "Explored Both High U & J") +
+  coord_cartesian(ylim = c(0,0.8)) +
+  theme_classic(base_size = 18) +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.title = element_text(face = "bold", size = 16),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    legend.position = "right"
+  )
+
+intx_expboth
+
+
+
+# Combine interaction plots with Patchwork ----
+
+# Modify intx_exphighu Figure 5a
+intx_exphighu <- intx_exphighu + 
+  theme(
+    legend.position.inside = c(0.05, 0.95),
+    legend.justification = c(0, 1),
+    plot.title = element_text(size = 16, face = "bold")
+  ) +
+  labs(title = "Figure 5a: Only HighU Explored")
+intx_exphighu
+
+# Modify intx_expboth Figure 5b
+intx_expboth <- intx_expboth + 
+  theme(
+    legend.position.inside = c(0.05, 0.95), 
+    legend.justification = c(0, 1),
+    plot.title = element_text(size = 16, face = "bold")
+  ) +
+  labs(title = "Figure 5b: Explored Both HighU & HighJ")
+intx_expboth
+
+# Combine both plots into Figure 5
+figure_5 <- intx_exphighu + intx_expboth + 
+  plot_layout(ncol = 2) +  
+  plot_annotation(title = "Figure 5: Interaction Effects on Buying HighU")
+
+figure_5 <- intx_exphighu + intx_expboth + 
+  plot_layout(ncol = 2, guides = "collect") + 
+  plot_annotation(title = "Figure 5: Interaction Effects on Buying HighU") &
+  theme(legend.position.inside = c(0.05, 0.95)) 
+
+figure_5
+
+ggsave("Figure_5.png", plot = figure_5, width = 12, height = 6, dpi = 600)
+
+
+
+# Models: highU_explored models' GoF: # ----
+# HighU
+chi_highUexplored <- purchase_highu_base$deviance - purchase_highu_explored$deviance
+round(chi_highUexplored, 2)
+
+df_highUexplored <- purchase_highu_base$df.residual - purchase_highu_explored$df.residual
+df_highUexplored
+
+p_highUexplored <- pchisq(chi_highUexplored, df_highUexplored, lower.tail = FALSE)
+round(p_highUexplored, 2)
+
+
+chi_sq_highUexplored2 <- purchase_highu_explored$deviance - purchase_highu_exp_inxorth$deviance
+round(chi_sq_highUexplored2, 2)
+
+df_highUexplored2 <- purchase_highu_explored$df.residual - purchase_highu_exp_inxorth$df.residual
+df_highUexplored2
+
+p_highUexplored2 <- pchisq(chi_sq_highUexplored2, df_highUexplored2, lower.tail = FALSE)
+round(p_highUexplored2, 6)
+
+
+# TRY: HighU Any table with everything -----
+
+temp1 <- glm(highu_rest ~
+               reg_focus_dummy +
+               highU_explored +
+               expHighU_only +
+               exp_both_high +
+               age + 
+               gender + 
+               income + 
+               visit_frequency + 
+               app_expense + 
+               previous_experience + 
+               platform_preference + 
+               involvement + 
+               appname_purchased + 
+               apporder_purchased,
+             data = surveysub,
+             family = binomial)
+
+summary(temp1)
+
+purchase_highu_exp_inxorth <- glm(highu_rest ~
+                                    reg_focus_dummy +
+                                    highU_explored +
+                                    int_highU_explored_rf_orthogonal +
+                                    age + 
+                                    gender + 
+                                    income + 
+                                    visit_frequency + 
+                                    app_expense + 
+                                    previous_experience + 
+                                    platform_preference + 
+                                    involvement + 
+                                    appname_purchased + 
+                                    apporder_purchased, 
+                                  data = surveysub, 
+                                  family = binomial)
+
+summary(purchase_highu_exp_inxorth)
+
+
+purchase_highu_exp_inxorth <- glm(highu_rest ~
+                                    reg_focus_dummy +
+                                    highU_explored +
+                                    int_highU_explored_rf_orthogonal +
+                                    age + 
+                                    gender + 
+                                    income + 
+                                    visit_frequency + 
+                                    app_expense + 
+                                    previous_experience + 
+                                    platform_preference + 
+                                    involvement + 
+                                    appname_purchased + 
+                                    apporder_purchased, 
+                                  data = surveysub, 
+                                  family = binomial)
+
+summary(purchase_highu_exp_inxorth)
+
 
 

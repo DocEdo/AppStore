@@ -2,6 +2,8 @@
 source("data_preparation.R")
 library("tidyverse")
 
+# Mann-Whitney U ----
+
 # Read -> numeric
 surveysub$explore_num <- ifelse(surveysub$read == "TRUE", 1, 0)
 
@@ -38,6 +40,8 @@ highu_mw$p.value
 lowu_mw
 lowu_mw$p.value
 
+
+# Kruskal-Wallis ----
 
 # Kruskal-Wallis H test for Prevention
 prev_data <- surveysub %>% 

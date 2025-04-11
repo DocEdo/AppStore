@@ -6,6 +6,9 @@ library("tidyverse")
 library("tidytext")
 library("vcd")
 library("ggvenn")
+library("VennDiagram") # works but no percentages
+library("ggVennDiagram")
+
 
 # Visit frequency visualization ----
 
@@ -666,7 +669,7 @@ ggplot(aggregated_explorations, aes(x = purchase_type, fill = exploration_catego
   theme(legend.position = "bottom")
 
 
-# ANALYSIS: plot breakdown of all 8 combinations of people who explored HighU: (highu-only; highu+highj; highu+lowu; highu+lowj; highu+.) ----
+# ANALYSIS: Breakdown of 8 combinations - explored HighU: (highu-only; highu+highj; highu+lowu; highu+lowj; highu+.) ----
 
 survey <- survey %>%
   mutate(
@@ -1169,18 +1172,26 @@ survey_sum <- survey %>%
   group_by(subject) %>%
   summarise(
     highU_explored = any(purchased_ratings == "HighU" & (review == "Read" | detail == "Read")),
-    highJ_explored = any(purchased_ratings == "HighJ" & (review == "Read" | detail == "Read")),
+    lowJ_explored = any(purchased_ratings == "LowJ" & (review == "Read" | detail == "Read")),
     lowU_explored = any(purchased_ratings == "LowU" & (review == "Read" | detail == "Read")),
-    lowJ_explored = any(purchased_ratings == "LowJ" & (review == "Read" | detail == "Read"))
+    highJ_explored = any(purchased_ratings == "HighJ" & (review == "Read" | detail == "Read"))
   )
 
 # Data for venn
 venn_data <- list(
+  LowU = survey_sum$subject[survey_sum$lowU_explored == TRUE],
   HighU = survey_sum$subject[survey_sum$highU_explored == TRUE],
   HighJ = survey_sum$subject[survey_sum$highJ_explored == TRUE],
-  LowU = survey_sum$subject[survey_sum$lowU_explored == TRUE],
   LowJ = survey_sum$subject[survey_sum$lowJ_explored == TRUE]
 )
+
+venn_plot <- ggvenn(
+  venn_data,
+  fill_color = c("#FFFFFF00", "gray40", "gray40", "#FFFFFF00"), 
+  text_size = 4.2
+)
+
+venn_plot
 
 # Check vector length
 length_highU <- length(venn_data$HighU)
@@ -1190,7 +1201,7 @@ length_lowJ <- length(venn_data$LowJ)
 
 c(HighU = length_highU, HighJ = length_highJ, LowU = length_lowU, LowJ = length_lowJ)
 
-# Count unique subjects in the Venn diagram
+#
 total_unique_subjects_venn <- length(unique(c(venn_data$HighU, venn_data$HighJ, venn_data$LowU, venn_data$LowJ)))
 
 total_unique_subjects_venn
@@ -1199,13 +1210,98 @@ total_unique_subjects_venn
 #                    fill_color = c("red", "blue", "green", "purple"), 
 #                    text_size = 4.2)
 
-venn_plot <- ggvenn(
-  venn_data,
-  fill_color = c("gray30", "gray50", "gray70", "gray90"), # Shades of gray
-  text_size = 4.2
+ggsave("temporary_files/Explore_Venn.jpg", plot = venn_plot)
+
+
+
+
+# VennDiagram package -----
+# All explorations for each subject
+survey_sum <- survey %>%
+  group_by(subject) %>%
+  summarise(
+    lowJ_explored = any(purchased_ratings == "LowJ" & (review == "Read" | detail == "Read")),
+    highU_explored = any(purchased_ratings == "HighU" & (review == "Read" | detail == "Read")),
+    lowU_explored = any(purchased_ratings == "LowU" & (review == "Read" | detail == "Read")),
+    highJ_explored = any(purchased_ratings == "HighJ" & (review == "Read" | detail == "Read"))
+  )
+
+# Data for venn
+venn_data <- list(
+  LowU = survey_sum$subject[survey_sum$lowU_explored == TRUE],
+  LowJ = survey_sum$subject[survey_sum$lowJ_explored == TRUE],
+  HighJ = survey_sum$subject[survey_sum$highJ_explored == TRUE],
+  HighU = survey_sum$subject[survey_sum$highU_explored == TRUE]
 )
 
-venn_plot
 
-ggsave("temporary_files/Explore_Venn.jpg", plot = venn_plot, dpi = 300)
+venn_plot <- draw.quad.venn(
+  area1 = length(venn_data$LowU),   
+  area2 = length(venn_data$LowJ),   
+  area3 = length(venn_data$HighU),
+  area4 = length(venn_data$HighJ),  
+  
+  # Adjusted intersections for the swap
+  n12 = length(intersect(venn_data$LowU, venn_data$LowJ)),
+  n13 = length(intersect(venn_data$LowU, venn_data$HighU)),  
+  n14 = length(intersect(venn_data$LowU, venn_data$HighJ)),  
+  n23 = length(intersect(venn_data$LowJ, venn_data$HighU)),  
+  n24 = length(intersect(venn_data$LowJ, venn_data$HighJ)),  
+  n34 = length(intersect(venn_data$HighU, venn_data$HighJ)), 
+  
+  # Three-way intersections
+  n123 = length(Reduce(intersect, list(venn_data$LowU, venn_data$LowJ, venn_data$HighU))),  
+  n124 = length(Reduce(intersect, list(venn_data$LowU, venn_data$LowJ, venn_data$HighJ))),  
+  n134 = length(Reduce(intersect, list(venn_data$LowU, venn_data$HighU, venn_data$HighJ))), 
+  n234 = length(Reduce(intersect, list(venn_data$LowJ, venn_data$HighU, venn_data$HighJ))), 
+  
+  # Four-way intersection
+  n1234 = length(Reduce(intersect, list(venn_data$LowU, venn_data$LowJ, venn_data$HighU, venn_data$HighJ))),
+  
+  # Labels and colors
+  category = c("LowU", "LowJ", "HighU", "HighJ"), 
+  fill = c("#FFFFFF00", "#FFFFFF00", "gray40", "gray40"),
+  cat.col = "black",
+  cat.cex = 1.5,
+  cex = 1.7
+)
+
+grid.draw(venn_plot)
+
+
+
+# ggVennDiagram ----
+
+
+venn_data <- list(
+  LowU = survey_sum$subject[survey_sum$lowU_explored == TRUE],
+  HighU = survey_sum$subject[survey_sum$lowJ_explored == TRUE], 
+  HighJ = survey_sum$subject[survey_sum$highU_explored == TRUE], 
+  LowJ = survey_sum$subject[survey_sum$highJ_explored == TRUE] 
+)
+
+
+# ggVennDiagram(venn_data, label = "both", edge_size = 1.2) +  
+#   scale_fill_gradient(low = "white", high = "gray40") +  
+#   theme_void() + 
+#   theme(legend.position = "none") + 
+#   theme(
+#     text = element_text(size = 24) 
+#   ) +
+#   scale_x_continuous(expand = expansion(mult = 0.2)) + 
+#   scale_y_continuous(expand = expansion(mult = 0.2))
+#   # ggsave("VennDiagram_A4.png", width = 8.27, height = 11.69, dpi = 300) 
+
+
+ggVennDiagram(venn_data, label = "both", edge_size = 1.2, label_alpha = 0) +  
+  scale_fill_gradient(low = "#FFFFFF00", high = "gray40") +  
+  theme_void() +  
+  theme(legend.position = "none", text = element_text(size = 40))
+
+
+
+
+
+
+
 

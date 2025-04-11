@@ -322,7 +322,6 @@ lowJ_explored <- (allLowJ$review == "Read") | (allLowJ$detail == "Read")
 surveysub$lowU_explored <- factor(lowU_explored)
 surveysub$lowJ_explored <- factor(lowJ_explored)
 
-
 # HighU variables ----
 
 # Recoding purchased_ratings to a binary variable (HighU vs HighJ)
