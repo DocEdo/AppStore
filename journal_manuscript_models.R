@@ -1417,6 +1417,13 @@ explored_highj_apps$p.value <- round(explored_highj_apps$p.value, 2)
 write.xlsx(explored_highj_apps, file = "temporary_files/explored_highj.xlsx")
 
 
+
+
+
+
+
+
+
 # AIC for final table ----
 
 summary(purchase_highu_exp)

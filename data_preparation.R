@@ -324,27 +324,27 @@ surveysub$lowJ_explored <- factor(lowJ_explored)
 
 # HighU variables ----
 
-# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+# Purchased_ratings to a binary variable (HighU vs HighJ)
 survey$highju <- ifelse(survey$purchased_ratings == "HighU", 1, 
                         ifelse(survey$purchased_ratings == "HighJ", 0, NA))
 
-# Recoding purchased_ratings to a binary variable (HighU vs HighJ)
+# Purchased_ratings to a binary variable (HighU vs HighJ)
 surveysub$highju <- ifelse(surveysub$purchased_ratings == "HighU", 1, 
                            ifelse(surveysub$purchased_ratings == "HighJ", 0, NA))
 
-# Recoding purchased_ratings to a binary of HighU vs the rest in surveysub
+# Purchased_ratings to a binary of HighU vs the rest in surveysub
 surveysub$highu_rest <- as.numeric(surveysub$purchased_ratings == "HighU")
 
-# Recoding purchased_ratings to a binary of HighJ vs the rest in surveysub
+# Purchased_ratings to a binary of HighJ vs the rest in surveysub
 surveysub$highj_rest <- as.numeric(surveysub$purchased_ratings == "HighJ")
 
-# Recoding purchased_ratings to a binary of LowJ vs the rest in surveysub
+# Purchased_ratings to a binary of LowJ vs the rest in surveysub
 surveysub$lowj_rest <- as.numeric(surveysub$purchased_ratings == "LowJ")
 
-# Recoding purchased_ratings to a binary of LowU vs the rest in surveysub
+# Purchased_ratings to a binary of LowU vs the rest in surveysub
 surveysub$lowu_rest <- as.numeric(surveysub$purchased_ratings == "LowU")
 
-# Recoding purchased_ratings to a binary of HighU vs the rest in survey
+# Purchased_ratings to a binary of HighU vs the rest in survey
 survey$highu_rest <- as.numeric(survey$purchased_ratings == "HighU")
 
 # Filtering out NA values (LowJ and LowU)
