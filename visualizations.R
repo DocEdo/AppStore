@@ -916,7 +916,7 @@ ggplot(purchase_non_highu_agg, aes(x = purchased_ratings, y = count, fill = purc
   theme_minimal() +
   theme(legend.position = "bottom")
 
-# (Works) Exploration patterns of HighU & HighJ Purchasers ----
+# (Works) Bars Exploration patterns of HighU & HighJ Purchasers ----
 survey <- survey %>%
   mutate(
     pp_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",
@@ -996,8 +996,8 @@ avg_purch_highu_plot <- ggplot(grouped_stats, aes(x = regulatory_focus, y = Avg_
 avg_purch_highu_plot
 
 
-# (Works) All 8 Combinations of HighU Explorations----
-# Define exploration flags
+# (Works) Bars All 8 Combinations of HighU Explorations----
+# Define exploration
 survey <- survey %>%
   mutate(
     explored_HighU = (review == "Read" | detail == "Read") & purchased_ratings == "HighU",

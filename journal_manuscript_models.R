@@ -1422,8 +1422,6 @@ write.xlsx(explored_highj_apps, file = "temporary_files/explored_highj.xlsx")
 
 
 
-
-
 # AIC for final table ----
 
 summary(purchase_highu_exp)
@@ -2284,8 +2282,8 @@ intx_exphighu <- ggplot(summary_stats3,
   scale_shape_manual(values = c(0, 2)) +  
   labs(x = "Induced Regulatory Focus", 
        y = "HighU Purchase Probability",
-       linetype = "Only HighU Explored", 
-       shape = "Only HighU Explored") +
+       linetype = NULL, 
+       shape = NULL) +
   coord_cartesian(ylim = c(0, 0.8)) + # Standardize Y-axis limits to 0-1
   theme_classic(base_size = 18) +
   theme(
